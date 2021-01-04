@@ -116,7 +116,7 @@
 #define IS_REVERSE      ((SEGMENT.options & REVERSE     ) == REVERSE     )
 #define IS_SELECTED     ((SEGMENT.options & SELECTED    ) == SELECTED    )
 
-#define MODE_COUNT  116
+#define MODE_COUNT  118
 
 #define FX_MODE_STATIC                   0
 #define FX_MODE_BLINK                    1
@@ -234,6 +234,8 @@
 #define FX_MODE_WASHING_MACHINE        113
 #define FX_MODE_CANDY_CANE             114
 #define FX_MODE_BLENDS                 115
+#define FX_MODE_MDR1                   116
+#define FX_MODE_TESTCOLORSET           117
 
 class WS2812FX {
   typedef uint16_t (WS2812FX::*mode_ptr)(void);
@@ -243,12 +245,13 @@ class WS2812FX {
   
   // segment parameters
   public:
-    typedef struct Segment { // 24 bytes
+    typedef struct Segment { // 25 bytes
       uint16_t start;
       uint16_t stop; //segment invalid if stop == 0
       uint8_t speed;
       uint8_t intensity;
       uint8_t palette;
+      uint8_t colorset;
       uint8_t mode;
       uint8_t options; //bit pattern: msb first: transitional needspixelstate tbd tbd (paused) on reverse selected
       uint8_t grouping, spacing;
@@ -463,6 +466,8 @@ class WS2812FX {
       _mode[FX_MODE_WASHING_MACHINE]         = &WS2812FX::mode_washing_machine;
       _mode[FX_MODE_CANDY_CANE]              = &WS2812FX::mode_candy_cane;
       _mode[FX_MODE_BLENDS]                  = &WS2812FX::mode_blends;
+      _mode[FX_MODE_MDR1]                    = &WS2812FX::mode_mdr1;
+      _mode[FX_MODE_TESTCOLORSET]            = &WS2812FX::mode_test_color_set;
 
       _brightness = DEFAULT_BRIGHTNESS;
       currentPalette = CRGBPalette16(CRGB::Black);
@@ -504,7 +509,7 @@ class WS2812FX {
       gammaCorrectCol = true,
       applyToAllSelected = true,
       segmentsAreIdentical(Segment* a, Segment* b),
-      setEffectConfig(uint8_t m, uint8_t s, uint8_t i, uint8_t p),
+      setEffectConfig(uint8_t m, uint8_t s, uint8_t i, uint8_t p, uint8_t colorSet),
       // return true if the strip is being sent pixel updates
       isUpdating(void);
 
@@ -673,7 +678,9 @@ class WS2812FX {
       mode_dancing_shadows(void),
       mode_washing_machine(void),
       mode_candy_cane(void),
-      mode_blends(void);
+      mode_blends(void),
+      mode_mdr1(void),
+      mode_test_color_set(void);
 
   private:
     NeoPixelWrapper *bus;
@@ -696,6 +703,7 @@ class WS2812FX {
       _useRgbw = false,
       _skipFirstMode,
       _triggered;
+
 
     mode_ptr _mode[MODE_COUNT]; // SRAM footprint: 4 bytes per element
 
@@ -738,9 +746,9 @@ class WS2812FX {
     
     uint8_t _segment_index = 0;
     uint8_t _segment_index_palette_last = 99;
-    segment _segments[MAX_NUM_SEGMENTS] = { // SRAM footprint: 24 bytes per element
-      // start, stop, speed, intensity, palette, mode, options, grouping, spacing, opacity (unused), color[]
-      { 0, 7, DEFAULT_SPEED, 128, 0, DEFAULT_MODE, NO_OPTIONS, 1, 0, 255, {DEFAULT_COLOR}}
+    segment _segments[MAX_NUM_SEGMENTS] = { // SRAM footprint: 25 bytes per element
+      // start, stop, speed, intensity, palette, colorset, mode, options, grouping, spacing, opacity (unused), color[]
+      { 0, 7, DEFAULT_SPEED, 128, 0, 0, DEFAULT_MODE, NO_OPTIONS, 1, 0, 255, {DEFAULT_COLOR}}
     };
     segment_runtime _segment_runtimes[MAX_NUM_SEGMENTS]; // SRAM footprint: 28 bytes per element
     friend class Segment_runtime;
@@ -761,7 +769,7 @@ const char JSON_mode_names[] PROGMEM = R"=====([
 "Twinklefox","Twinklecat","Halloween Eyes","Solid Pattern","Solid Pattern Tri","Spots","Spots Fade","Glitter","Candle","Fireworks Starburst",
 "Fireworks 1D","Bouncing Balls","Sinelon","Sinelon Dual","Sinelon Rainbow","Popcorn","Drip","Plasma","Percent","Ripple Rainbow",
 "Heartbeat","Pacifica","Candle Multi", "Solid Glitter","Sunrise","Phased","Twinkleup","Noise Pal", "Sine","Phased Noise",
-"Flow","Chunchun","Dancing Shadows","Washing Machine","Candy Cane","Blends"
+"Flow","Chunchun","Dancing Shadows","Washing Machine","Candy Cane","Blends","6 Lights","0 Test Color Set"
 ])=====";
 
 
@@ -771,7 +779,11 @@ const char JSON_palette_names[] PROGMEM = R"=====([
 "Pastel","Sunset 2","Beech","Vintage","Departure","Landscape","Beach","Sherbet","Hult","Hult 64",
 "Drywet","Jul","Grintage","Rewhi","Tertiary","Fire","Icefire","Cyane","Light Pink","Autumn",
 "Magenta","Magred","Yelmag","Yelblu","Orange & Teal","Tiamat","April Night","Orangery","C9","Sakura",
-"Aurora","Atlantica","C9 2","C9 New","Temperature"
+"Aurora","Atlantica","C9 2","C9 New","Temperature","Philips 6 Lights"
+])=====";
+
+const char JSON_colorset_names[] PROGMEM = R"=====([
+"Default","Philips 6 Colors","Christmas","Candy Cane"
 ])=====";
 
 #endif

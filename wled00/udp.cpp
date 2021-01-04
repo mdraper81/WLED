@@ -47,6 +47,7 @@ void notify(byte callMode, bool followUp)
   udpOut[17] = (transitionDelay >> 0) & 0xFF;
   udpOut[18] = (transitionDelay >> 8) & 0xFF;
   udpOut[19] = effectPalette;
+  // MDR DEBUG - TODO Handle notification for color set
   uint32_t colTer = strip.getSegment(strip.getMainSegmentId()).colors[2];
   udpOut[20] = (colTer >> 16) & 0xFF;
   udpOut[21] = (colTer >>  8) & 0xFF;
@@ -211,6 +212,7 @@ void handleNotifications()
       effectSpeed   = udpIn[9];
       if (udpIn[11] > 2) effectIntensity = udpIn[16];
       if (udpIn[11] > 4 && udpIn[19] < strip.getPaletteCount()) effectPalette = udpIn[19];
+      // MDR DEBUG - TODO Handle notification for color set
     }
     
     if (udpIn[11] > 3)

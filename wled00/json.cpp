@@ -7,7 +7,8 @@
 void deserializeSegment(JsonObject elem, byte it)
 {
   byte id = elem[F("id")] | it;
-  if (id < strip.getMaxSegments())
+  if (id < strip.getMaxSegments()) // MDR TEMP
+  // if (id < lightDisplay.getNumberOfLightedObjects())
   {
     WS2812FX::Segment& seg = strip.getSegment(id);
     uint16_t start = elem[F("start")] | seg.start;
@@ -96,12 +97,14 @@ void deserializeSegment(JsonObject elem, byte it)
       effectSpeed = elem[F("sx")] | effectSpeed;
       effectIntensity = elem[F("ix")] | effectIntensity;
       effectPalette = elem[F("pal")] | effectPalette;
+      effectColorSet = elem[F("colorset")] | effectColorSet;
     } else { //permanent
       byte fx = elem[F("fx")] | seg.mode;
       if (fx != seg.mode && fx < strip.getModeCount()) strip.setMode(id, fx);
       seg.speed = elem[F("sx")] | seg.speed;
       seg.intensity = elem[F("ix")] | seg.intensity;
       seg.palette = elem[F("pal")] | seg.palette;
+      seg.colorset = elem[F("colorset")] | seg.colorset;
     }
 
     JsonArray iarr = elem[F("i")]; //set individual LEDs
@@ -215,6 +218,8 @@ bool deserializeState(JsonObject root)
     else    realtimeTimeout = 0; //cancel realtime mode immediately
   }
 
+  // MDR TEMP - remove the code for strip and use lightDisplay function instead
+  //lightDisplay.deserializeAndApplyStateFromJson(root);
   byte prevMain = strip.getMainSegmentId();
   strip.mainSegment = root[F("mainseg")] | prevMain;
   if (strip.getMainSegmentId() != prevMain) setValuesFromMainSeg();
@@ -225,7 +230,8 @@ bool deserializeState(JsonObject root)
   {
     int id = segVar[F("id")] | -1;
     
-    if (id < 0) { //set all selected segments
+    if (id < 0) 
+    { //set all selected segments
       bool didSet = false;
       byte lowestActive = 99;
       for (byte s = 0; s < strip.getMaxSegments(); s++)
@@ -234,17 +240,22 @@ bool deserializeState(JsonObject root)
         if (sg.isActive())
         {
           if (lowestActive == 99) lowestActive = s;
-          if (sg.isSelected()) {
+          if (sg.isSelected()) 
+          {
             deserializeSegment(segVar, s);
             didSet = true;
           }
         }
       }
       if (!didSet && lowestActive < strip.getMaxSegments()) deserializeSegment(segVar, lowestActive);
-    } else { //set only the segment with the specified ID
+    } 
+    else
+    { //set only the segment with the specified ID
       deserializeSegment(segVar, it);
     }
-  } else {
+  } 
+  else 
+  {
     JsonArray segs = segVar.as<JsonArray>();
     for (JsonObject elem : segs)
     {
@@ -324,6 +335,7 @@ void serializeSegment(JsonObject& root, WS2812FX::Segment& seg, byte id, bool fo
 	root[F("sx")]  = seg.speed;
 	root[F("ix")]  = seg.intensity;
 	root[F("pal")] = seg.palette;
+  root[F("colorset")] = seg.colorset;
 	root[F("sel")] = seg.isSelected();
 	root[F("rev")] = seg.getOption(SEG_OPTION_REVERSED);
   root[F("mi")]  = seg.getOption(SEG_OPTION_MIRROR);
@@ -371,6 +383,8 @@ void serializeState(JsonObject root, bool forPreset, bool includeBri, bool segme
     root[F("lor")] = realtimeOverride;
   }
 
+  // MDR TEMP - remove strip code and use lightDisplay function instead
+  //lightDisplay.serializeCurrentStateToJson(root);
   root[F("mainseg")] = strip.getMainSegmentId();
 
   JsonArray seg = root.createNestedArray("seg");
@@ -552,6 +566,10 @@ void serveJson(AsyncWebServerRequest* request)
     request->send_P(200, "application/json", JSON_palette_names);
     return;
   }
+  else if (url.indexOf(F("colorset")) > 0) {
+    request->send_P(200, "application/json", JSON_colorset_names);
+    return;
+  }
   else if (url.length() > 6) { //not just /json
     request->send(  501, "application/json", F("{\"error\":\"Not implemented\"}"));
     return;
@@ -575,8 +593,11 @@ void serveJson(AsyncWebServerRequest* request)
       {
         doc[F("effects")]  = serialized((const __FlashStringHelper*)JSON_mode_names);
         doc[F("palettes")] = serialized((const __FlashStringHelper*)JSON_palette_names);
+        doc[F("colorsets")] = serialized((const __FlashStringHelper*)JSON_colorset_names);
       }
   }
+
+  //lightDisplay.serializeCurrentStateToJson(doc);
   
   response->setLength();
   request->send(response);

@@ -12,6 +12,7 @@ void setValuesFromMainSeg()
   effectSpeed = seg.speed;
   effectIntensity = seg.intensity;
   effectPalette = seg.palette;
+  effectColorSet = seg.colorset;
 }
 
 
@@ -104,7 +105,7 @@ void colorUpdated(int callMode)
   //Notifier: apply received FX to selected segments only if actually receiving FX
   if (someSel) strip.applyToAllSelected = receiveNotificationEffects;
 
-  bool fxChanged = strip.setEffectConfig(effectCurrent, effectSpeed, effectIntensity, effectPalette);
+  bool fxChanged = strip.setEffectConfig(effectCurrent, effectSpeed, effectIntensity, effectPalette, effectColorSet);
   bool colChanged = colorChanged();
 
   //Notifier: apply received color to selected segments only if actually receiving color

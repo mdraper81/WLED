@@ -83,7 +83,8 @@ void handleIO()
   handleButton();
   
   //set relay when LEDs turn on
-  if (strip.getBrightness())
+//  if (lightDisplay.getBrightness())
+  if (strip.getBrightness()) // MDR TEMP
   {
     lastOnTime = millis();
     if (offMode)

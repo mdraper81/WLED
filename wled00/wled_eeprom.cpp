@@ -422,6 +422,7 @@ void deEEP() {
         segObj[F("sx")]  = EEPROM.read(i+11);
         segObj[F("ix")]  = EEPROM.read(i+16);
         segObj[F("pal")] = EEPROM.read(i+17);
+        // MDR DEBUG: TODO - Update EEPROM to read/write the color set so it saves between sessions
       } else {
         WS2812FX::Segment* seg = strip.getSegments();
         memcpy(seg, EEPROM.getDataPtr() +i+2, 240);

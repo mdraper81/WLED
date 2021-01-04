@@ -3753,3 +3753,144 @@ uint16_t WS2812FX::mode_blends(void) {
 
   return FRAMETIME;
 }
+
+uint16_t WS2812FX::mode_mdr1(void) {
+  uint8_t numLedsPerColor = 1 + (SEGMENT.intensity >> 4);
+  uint32_t color = 0;
+  for(uint16_t i = 0; i < SEGLEN; i++) {
+    uint16_t colorBandIndex = i / numLedsPerColor;
+
+    // TODO: Use PhilipsSixLightColors_p to choose a color instead of this code
+    uint16_t colorIndex = colorBandIndex % 6;
+    switch (colorIndex)
+    {
+      case 0:
+      {
+        // color = RED;
+        color = 0x00FF0000;
+        break;
+      } 
+      case 1:
+      {
+        // color = ORANGE;
+        color = 0x00FF0F00;
+        break;
+      }
+      case 2: 
+      {
+        // color = YELLOW; // Too Green
+        color = 0x00FF4800;
+        break;
+      }
+      case 3: 
+      {
+        // color = GREEN;
+        color = 0x0003D000;
+        break;
+      }
+      case 4: 
+      {
+        // color = BLUE;
+        color = 0x000200FF;
+        break;
+      }
+      case 5:
+      {
+        // color = PURPLE;
+        color = 0x00FF0085;
+        break;
+      }
+    }
+
+    // Turn off the first and last led in the band if the number of Leds per band is > 3
+    int numLedsToTurnOffTotal = (numLedsPerColor + 1) / 2;
+    if (numLedsToTurnOffTotal > 1)
+    {
+      int numLedsToTurnOffAtEachEnd = numLedsToTurnOffTotal / 2;
+      int indexWithinColorBand = i % numLedsPerColor;
+      if (indexWithinColorBand < numLedsToTurnOffAtEachEnd || indexWithinColorBand >= (numLedsPerColor - numLedsToTurnOffAtEachEnd))
+      {
+        color = BLACK;
+      }
+    }
+    setPixelColor(i, color);
+  }
+  return FRAMETIME;
+}
+
+uint16_t WS2812FX::mode_test_color_set()
+{
+  Serial.printf("MDR DEBUG: Testing color set %d\n", SEGMENT.colorset);
+  for (uint16_t i = 0; i < SEGLEN; i++)
+  {
+    uint32_t color = 0;
+    if (SEGMENT.colorset == 1) // Philips
+    {
+      uint16_t colorIndex = i % 6;
+      switch (colorIndex)
+      {
+        case 0:
+        {
+          // color = RED;
+          color = 0x00FF0000;
+          break;
+        } 
+        case 1:
+        {
+          // color = ORANGE;
+          color = 0x00FF0F00;
+          break;
+        }
+        case 2: 
+        {
+          // color = YELLOW; // Too Green
+          color = 0x00FF4800;
+          break;
+        }
+        case 3: 
+        {
+          // color = GREEN;
+          color = 0x0003D000;
+          break;
+        }
+        case 4: 
+        {
+          // color = BLUE;
+          color = 0x000200FF;
+          break;
+        }
+        case 5:
+        {
+          // color = PURPLE;
+          color = 0x00FF0085;
+          break;
+        }
+      }
+    }
+    else if (SEGMENT.colorset == 2) // Christmas
+    {
+      if (i % 2 == 0)
+      {
+        color = GREEN;
+      }
+      else
+      {
+        color = RED;
+      }
+      
+    }
+    else if (SEGMENT.colorset == 3) // CandyCane
+    {
+      if (i % 2 == 0)
+      {
+        color = RED;
+      }
+      else
+      {
+        color = WHITE;
+      }
+    }
+    setPixelColor(i, color);
+  }
+  return FRAMETIME;
+}

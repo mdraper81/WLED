@@ -350,10 +350,11 @@ uint8_t WS2812FX::getPaletteCount()
 //TODO transitions
 
 
-bool WS2812FX::setEffectConfig(uint8_t m, uint8_t s, uint8_t in, uint8_t p) {
+bool WS2812FX::setEffectConfig(uint8_t m, uint8_t s, uint8_t in, uint8_t p, uint8_t colorset) {
   uint8_t mainSeg = getMainSegmentId();
   Segment& seg = _segments[getMainSegmentId()];
   uint8_t modePrev = seg.mode, speedPrev = seg.speed, intensityPrev = seg.intensity, palettePrev = seg.palette;
+  uint8_t colorsetPrev = seg.colorset;
 
   bool applied = false;
   
@@ -365,6 +366,7 @@ bool WS2812FX::setEffectConfig(uint8_t m, uint8_t s, uint8_t in, uint8_t p) {
         _segments[i].speed = s;
         _segments[i].intensity = in;
         _segments[i].palette = p;
+        _segments[i].colorset = colorset;
         setMode(i, m);
         applied = true;
       }
@@ -375,10 +377,11 @@ bool WS2812FX::setEffectConfig(uint8_t m, uint8_t s, uint8_t in, uint8_t p) {
     seg.speed = s;
     seg.intensity = in;
     seg.palette = p;
+    seg.colorset = colorset;
     setMode(mainSegment, m);
   }
   
-  if (seg.mode != modePrev || seg.speed != speedPrev || seg.intensity != intensityPrev || seg.palette != palettePrev) return true;
+  if (seg.mode != modePrev || seg.speed != speedPrev || seg.intensity != intensityPrev || seg.palette != palettePrev || seg.colorset != colorsetPrev) return true;
   return false;
 }
 
@@ -643,6 +646,7 @@ uint32_t WS2812FX::color_blend(uint32_t color1, uint32_t color2, uint8_t blend) 
  * Fills segment with color
  */
 void WS2812FX::fill(uint32_t c) {
+  Serial.printf("MDR DEBUG: Setting color 0x%08X\n", c);
   for(uint16_t i = 0; i < SEGLEN; i++) {
     setPixelColor(i, c);
   }
@@ -891,6 +895,8 @@ void WS2812FX::handle_palette(void)
       targetPalette = RainbowColors_p; break;
     case 12: //Rainbow stripe colors
       targetPalette = RainbowStripeColors_p; break;
+    case 55: // Philips 6 lights
+      targetPalette = PhilipsSixLightsColors_p; break;
     default: //progmem palettes
       load_gradient_palette(paletteIndex -13);
   }

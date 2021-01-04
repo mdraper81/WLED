@@ -149,6 +149,17 @@ button {
 	font-size: 14px;
 }
 
+.lighted_object_table {
+	table-layout: fixed;
+	width: 76%;
+}
+
+.lighted_object_table_data {
+	text-align: center;
+	text-transform: uppercase;
+	font-size: 14px;
+}
+
 .keytd {
 	text-align: left;
 	padding-bottom: 8px;
@@ -675,7 +686,21 @@ input[type=number]::-webkit-outer-spin-button {
 	margin: 3px 0 6px 0 !important;
 }
 
+.lighted_object_numeric {
+	margin: 3px 0 6px 0 !important;
+}
+
 .segname {
+	position: absolute;
+	top: 0px;
+	left: 50%;
+	padding: 9px 0;
+	transform: translateX(-50%);
+	white-space: nowrap;
+	cursor: pointer;
+}
+
+.lighted_object_name {
 	position: absolute;
 	top: 0px;
 	left: 50%;
@@ -705,6 +730,10 @@ input[type=number]::-webkit-outer-spin-button {
 }
 
 .newseg {
+	cursor: default;
+}
+
+.new_lighted_object {
 	cursor: default;
 }
 
@@ -874,11 +903,32 @@ input[type=number]::-webkit-outer-spin-button {
   filter: brightness(1);
 }
 
+.lighted_obj {
+	position: relative;
+	display: inline-block;
+	padding: 8px;
+	margin: 10px;
+	width: 260px;
+	font-size: 19px;
+	background-color: var(--c-2);
+	color: var(--c-f);
+	border: 0px solid white;
+	border-radius: 20px;
+	text-align: left;
+	transition: background-color 0.5s;
+  filter: brightness(1);	
+}
+
 .pres {
 	margin-bottom: 6px;
 }
 
 .segin {
+	padding: 8px 8px 4px 8px;
+	display: none;
+}
+
+.lighted_object_details {
 	padding: 8px 8px 4px 8px;
 	display: none;
 }
@@ -1025,10 +1075,20 @@ input[type=number]::-webkit-outer-spin-button {
 			<input id="hexc" type="text" class="noslide" onkeydown="hexEnter(this)" autocomplete="off" maxlength="8" />
 			<button id="hexcnf" class="xxs btn" onclick="fromHex();"><i class="icons btna-icon">&#xe390;</i></button>
 		</div>
+		<!--
 		<p class="labels">Color palette</p> 
 		<div class="il">
 			<i class="icons sel-icon" onclick="tglHex()">&#xe2b3;</i>
 			<select class="btn sel" id="selectPalette" onchange="setPalette()">
+				<option>Default</option>
+				<option>Error!</option>
+			</select>
+		</div>
+		-->
+		<p class="labels">Color set</p>
+		<div class="il">
+			<i class="icons sel-icon" onclick="tglHex()">&#xe2b3;</i>
+			<select class="btn sel" id="selectColorSet" onchange="setColorSet()">
 				<option>Default</option>
 				<option>Error!</option>
 			</select>
@@ -1064,6 +1124,18 @@ input[type=number]::-webkit-outer-spin-button {
 		<br>
 	</div>
 	
+	<div id="Objects" class="tabcontent">
+		<!-- Define the main containers for this tab content -->
+		<div id="object_container">
+			No objects defined
+		</div>
+		<div id="object_button_container1">
+		</div>
+		<div id="object_button_container2">
+			<button class="btn btn-s" id="clear_objects_button" onclick="clearObjects()">Clear All Objects</button>
+		</div>
+	</div>
+
 	<div id="Segments" class="tabcontent">
 		<div id="segcont">
 			Loading...
@@ -1101,8 +1173,9 @@ input[type=number]::-webkit-outer-spin-button {
 <div class="tab bot" id="bot">
 	<button class="tablinks" onclick="openTab(0)"><i class="icons">&#xe2b3;</i><p class="tab-label">Colors</p></button>
 	<button class="tablinks" onclick="openTab(1)"><i class="icons">&#xe23d;</i><p class="tab-label">Effects</p></button>
-	<button class="tablinks" onclick="openTab(2)"><i class="icons">&#xe34b;</i><p class="tab-label">Segments</p></button>
-	<button class="tablinks" onclick="openTab(3)"><i class="icons">&#xe04c;</i><p class="tab-label">Favorites</p></button>
+	<button class="tablinks" onclick="openTab(2)"><i class="icons">&#xe34b;</i><p class="tab-label">Objects</p></button>
+	<button class="tablinks" onclick="openTab(3)"><i class="icons">&#xe34b;</i><p class="tab-label">Segments</p></button>
+	<button class="tablinks" onclick="openTab(4)"><i class="icons">&#xe04c;</i><p class="tab-label">Favorites</p></button>
 </div>
 
 <div id="connind"></div>
@@ -1334,6 +1407,7 @@ function onLoad() {
 	selectSlot(0);
 	updateTablinks(0);
 	resetUtil();
+	placeAddObjectButtons();
 	cpick.on("input:end", function() {
 		setColor(1);
 	});
@@ -1711,6 +1785,90 @@ function populateSegments(s)
 	d.getElementById('rsbtn').style.display = (segCount > 1) ? "inline":"none";
 }
 
+function populateObjects(s)
+{
+//	var cn = "";
+//	segCount = 0, lowestUnused = 0; lSeg = 0;
+// 
+//	for (y in s.seg)
+//	{
+//		segCount++;
+//		
+//		var inst=s.seg[y];
+//		var i = parseInt(inst.id);
+//		powered[i] = inst.on;
+//		if (i == lowestUnused) lowestUnused = i+1;
+//		if (i > lSeg) lSeg = i;
+//		
+//		cn += `<div class="seg">
+//			<label class="check schkl">
+//				&nbsp;
+//				<input type="checkbox" id="seg${i}sel" onchange="selSeg(${i})" ${inst.sel ? "checked":""}>
+//				<span class="checkmark schk"></span>
+//			</label>
+//			<div class="segname" onclick="selSegEx(${i})">
+//				Segment ${i}
+//			</div>
+//			<i class="icons e-icon flr ${expanded[i] ? "exp":""}" id="sege${i}" onclick="expand(${i})">&#xe395;</i>
+//			<div class="segin ${expanded[i] ? "expanded":""}" id="seg${i}">
+//			<table class="segt">
+//				<tr>
+//					<td class="segtd">Start LED</td>
+//					<td class="segtd">Stop LED</td>
+//				</tr>
+//				<tr>
+//					<td class="segtd"><input class="noslide segn" id="seg${i}s" type="number" min="0" max="${ledCount-1}" value="${inst.start}" oninput="updateLen(${i})"></td>
+//					<td class="segtd"><input class="noslide segn" id="seg${i}e" type="number" min="0" max="${ledCount}" value="${inst.stop}" oninput="updateLen(${i})"></td>
+//				</tr>
+//			</table>
+//			<table class="segt">
+//				<tr>
+//					<td class="segtd">Grouping</td>
+//					<td class="segtd">Spacing</td>
+//				</tr>
+//				<tr>
+//					<td class="segtd"><input class="noslide segn" id="seg${i}grp" type="number" min="1" max="255" value="${inst.grp}" oninput="updateLen(${i})"></td>
+//					<td class="segtd"><input class="noslide segn" id="seg${i}spc" type="number" min="0" max="255" value="${inst.spc}" oninput="updateLen(${i})"></td>
+//				</tr>
+//			</table>
+//			<div class="h bp" id="seg${i}len"></div>
+//			<i class="icons e-icon pwr ${powered[i] ? "act":""}" id="seg${i}pwr" onclick="setSegPwr(${i})">&#xe08f;</i>
+//			<div class="sliderwrap il sws">
+//				<input id="seg${i}bri" class="noslide sis" onchange="setSegBri(${i})" oninput="updateTrail(this)" max="255" min="1" type="range" value="${inst.bri}" />
+//				<div class="sliderdisplay"></div>
+//			</div>
+//				<i class="icons e-icon cnf cnf-s" id="segc${i}" onclick="setSeg(${i})">&#xe390;</i>
+//				<i class="icons e-icon del" id="segd${i}" onclick="delSeg(${i})">&#xe037;</i>
+//				<label class="check revchkl">
+//					Reverse direction
+//					<input type="checkbox" id="seg${i}rev" onchange="setRev(${i})" ${inst.rev ? "checked":""}>
+//					<span class="checkmark schk"></span>
+//				</label>
+//				<label class="check revchkl">
+//					Mirror effect
+//					<input type="checkbox" id="seg${i}mi" onchange="setMi(${i})" ${inst.mi ? "checked":""}>
+//					<span class="checkmark schk"></span>
+//				</label>
+//			</div>
+//		</div><br>`;
+//	}
+//
+//	d.getElementById('segcont').innerHTML = cn;
+//	if (lowestUnused >= maxSeg) {
+//		d.getElementById('segutil').innerHTML = '<span class="h">Maximum number of segments reached.</span>';
+//		noNewSegs = true;
+//	} else if (noNewSegs) {
+//      placeAddObjectButtons();
+//		noNewSegs = false;
+//	}
+//	for (i = 0; i <= lSeg; i++) {
+//	updateLen(i);
+//	updateTrail(d.getElementById(`seg${i}bri`));
+//	if (segCount < 2) d.getElementById(`segd${lSeg}`).style.display = "none";
+//	}
+//	d.getElementById('rsbtn').style.display = (segCount > 1) ? "inline":"none";
+}
+
 function updateTrail(e, slidercol)
 {
 	if (e==null) return;
@@ -1800,8 +1958,10 @@ function updateUI()
 	updateTrail(d.getElementById('sliderW'));
 	if (isRgbw) d.getElementById('wwrap').style.display = "block";
 
-	spal = d.getElementById("selectPalette");
-	spal.style.backgroundColor = (spal.selectedIndex > 0) ? "var(--c-6)":"var(--c-3)";
+	// spal = d.getElementById("selectPalette");
+	// spal.style.backgroundColor = (spal.selectedIndex > 0) ? "var(--c-6)":"var(--c-3)";
+	scolset = d.getElementById("selectColorSet");
+	scolset.style.backgroundColor = (scolset.selectedIndex > 0) ? "var(--c-6)":"var(--c-3)";
 	updatePA();
 	updateHex();
 	updateRgb();
@@ -1831,8 +1991,9 @@ function requestJson(command, rinfo = true, verbose = true) {
 	lastUpdate = new Date();
 	if (!jsonTimeout) jsonTimeout = setTimeout(showErrorToast, 3000);
 	var req = null;
-	e1 = d.getElementById('fxlist');
-	e2 = d.getElementById('selectPalette');
+	effectsButtonList = d.getElementById('fxlist');
+	//paletteComboBox = d.getElementById('selectPalette');
+	colorSetComboBox = d.getElementById('selectColorSet');
 
 	url = rinfo ? '/json/si': (command ? '/json/state':'/json');
 	if (loc) {
@@ -1877,21 +2038,33 @@ function requestJson(command, rinfo = true, verbose = true) {
     }
     else populatePresets(true);
     pmtLast = pmt;
-		var x='',y='<option value="0">Default</option>';
+
+		var effectsList='';
 		json.effects.shift(); //remove solid
 		for (i in json.effects) json.effects[i] = {id: parseInt(i)+1, name:json.effects[i]};
 		json.effects.sort(compare);
 		for (i in json.effects) {
-		x += `<button class="btn${(i==0)?" first":""}" id="fxb${json.effects[i].id}" onclick="setX(${json.effects[i].id});">${json.effects[i].name}</button><br>`;
+		effectsList += `<button class="btn${(i==0)?" first":""}" id="fxb${json.effects[i].id}" onclick="setX(${json.effects[i].id});">${json.effects[i].name}</button><br>`;
 		}
+		effectsButtonList.innerHTML=effectsList;
 
-		json.palettes.shift(); //remove default
-		for (i in json.palettes) json.palettes[i] = {"id": parseInt(i)+1, "name":json.palettes[i]};
-		json.palettes.sort(compare);
-		for (i in json.palettes) {
-		y += `<option value="${json.palettes[i].id}">${json.palettes[i].name}</option>`;
+		//var paletteList='<option value="0">Default</option>';
+		//json.palettes.shift(); //remove default
+		//for (i in json.palettes) json.palettes[i] = {"id": parseInt(i)+1, "name":json.palettes[i]};
+		//json.palettes.sort(compare);
+		//for (i in json.palettes) {
+		//paletteList += `<option value="${json.palettes[i].id}">${json.palettes[i].name}</option>`;
+		//}
+		//paletteComboBox.innerHTML=paletteList;
+
+		var colorsetsList='<option value="0">Default</option>';
+		json.colorsets.shift(); //remove default
+		for (i in json.colorsets) json.colorsets[i] = {"id": parseInt(i)+1, "name":json.colorsets[i]};
+		json.colorsets.sort(compare);
+		for (i in json.colorsets) {
+			colorsetsList += `<option value="${json.colorsets[i].id}">${json.colorsets[i].name}</option>`;
 		}
-		e1.innerHTML=x; e2.innerHTML=y;
+		colorSetComboBox.innerHTML=colorsetsList;
 		}
 		
 			var info = json.info;
@@ -1954,7 +2127,8 @@ function requestJson(command, rinfo = true, verbose = true) {
 
 		d.getElementById('fxb' + selectedFx).style.backgroundColor = "var(--c-3)";
 		selectedFx = i.fx;
-		e2.value = i.pal;
+		//paletteComboBox.value = i.pal;
+		colorSetComboBox.value = i.colorset;
 		if (!command) d.getElementById('Effects').scrollTop = d.getElementById('fxb' + selectedFx).offsetTop - d.getElementById('Effects').clientHeight/1.8;
 
 		if (s.error && s.error != 0) {
@@ -2057,6 +2231,61 @@ function resetUtil() {
 	d.getElementById('segutil').innerHTML = cn;
 }
 
+function placeAddObjectButtons()
+{
+	var buttonContent = `<button class="btn btn-s btn-i" onclick="placeAddLightedObjectUI('Strand')"><i class="icons btn-icon">&#xe18a;</i>Strand</button><br>`;
+	buttonContent += `<button class="btn btn-s btn-i" onclick="placeAddLightedObjectUI('Present')"><i class="icons btn-icon">&#xe18a;</i>Present</button><br>`;
+	buttonContent += `<button class="btn btn-s btn-i" onclick="placeAddLightedObjectUI('Snowflake')"><i class="icons btn-icon">&#xe18a;</i>Snowflake</button><br>`;
+	buttonContent += `<button class="btn btn-s btn-i" onclick="placeAddLightedObjectUI('Spire Tree')"><i class="icons btn-icon">&#xe18a;</i>Spire Tree</button><br>`;
+	d.getElementById('object_button_container1').innerHTML = buttonContent;
+}
+
+function placeAddLightedObjectUI(objectType)
+{
+	showToast('Adding lighted object');
+	var content = `<div class="lighted_obj">
+			<div class="lighted_object_name new_lighted_object">
+				New ${objectType}
+			</div>
+			<br>
+			<div class="lighted_object_details expanded">
+				<table class="lighted_object_table">
+					<tr>
+						<td class="lighted_object_table_data">Start LED</td>
+						<td class="lighted_object_table_data">Stop LED</td>
+					</tr>
+					<tr>
+						<td class="lighted_object_table_data"><input class="noslide lighted_object_numeric" id="seg${lowestUnused}s" type="number" min="0" max="99" value="0" oninput="updateLen(${lowestUnused})"></td>
+						<td class="lighted_object_table_data"><input class="noslide lighted_object_numeric" id="seg${lowestUnused}e" type="number" min="0" max="99" value="50" oninput="updateLen(${lowestUnused})"></td>
+					</tr>
+				</table>
+				<div class="h" id="seg${lowestUnused}len">${ledCount - 0} LEDs</div>
+				<i class="icons e-icon cnf cnf-s half" id="lighted_object_create_${lowestUnused}" onclick="createLightedObject(); placeAddObjectButtons();">&#xe390;</i>
+			</div>
+		</div>`;
+//	var cn = `<div class="lighted_obj">
+//			<div class="lighted_object_name new_lighted_object">
+//				New Object Type
+//			</div>
+//			<br>
+//			<div class="lighted_object_details expanded">
+//				<table class="lighted_object_table">
+//					<tr>
+//						<td class="lighted_object_table_data">Start LED</td>
+//						<td class="lighted_object_table_data">Stop LED</td>
+//					</tr>
+//					<tr>
+//						<td class="lighted_object_table_data"><input class="noslide lighted_object_numeric" id="seg${lowestUnused}s" type="number" min="0" max="${ledCount-1}" value="${ns}" oninput="updateLen(${lowestUnused})"></td>
+//						<td class="lighted_object_table_data"><input class="noslide lighted_object_numeric" id="seg${lowestUnused}e" type="number" min="0" max="${ledCount}" value="${ledCount}" oninput="updateLen(${lowestUnused})"></td>
+//					</tr>
+//				</table>
+//				<div class="h" id="seg${lowestUnused}len">${ledCount - ns} LEDs</div>
+//				<i class="icons e-icon cnf cnf-s half" id="lighted_object_create_${lowestUnused}" onclick="createLightedObject(); resetUtil();">&#xe390;</i>
+//			</div>
+//		</div>`;
+	d.getElementById('object_button_container1').innerHTML = content;
+}
+
 function makeP(i) {
 	return `
 	<input type="text" class="ptxt noslide" id="p${i}txt" autocomplete="off" maxlength=32 value="${(i>0)?pName(i):""}" placeholder="Enter name..."/><br>
@@ -2156,6 +2385,11 @@ function delSeg(s){
 	requestJson(obj, false);
 }
 
+function createLightedObject()
+{
+	// MDR DEBUG: TODO - Write code to create object
+}
+
 function setRev(s){
 	var rev = d.getElementById(`seg${s}rev`).checked;
 	var obj = {"seg": {"id": s, "rev": rev}};
@@ -2183,9 +2417,16 @@ function setX(ind) {
 	requestJson(obj);
 }
 
-function setPalette()
+//function setPalette()
+//{
+//	var obj = {"seg": {"pal": parseInt(d.getElementById('selectPalette').value)}};
+//	requestJson(obj);
+//}
+
+function setColorSet()
 {
-	var obj = {"seg": {"pal": parseInt(d.getElementById('selectPalette').value)}};
+	showToast("You are selecting color set " + parseInt(d.getElementById('selectColorSet').value));
+	var obj = {"seg": {"colorset": parseInt(d.getElementById('selectColorSet').value)}};
 	requestJson(obj);
 }
 
@@ -2425,6 +2666,29 @@ function rSegs()
 		obj.seg.push({"stop":0});
 	}
 	requestJson(obj);
+}
+
+var hasUserConfirmedClear = false;
+function clearObjects()
+{
+	var buttonObject = d.getElementById('clear_objects_button');
+	if (!hasUserConfirmedClear)
+	{
+		// Confirm that the user wishes to clear all objects before
+		// taking any action
+		buttonObject.style.color = "xf00";
+		buttonObject.innerHTML = "Confirm Clear";
+		hasUserConfirmedClear = true;
+	}
+	else
+	{
+		// The user has already confirmed that they wish to clear 
+		// all objects, clear them now.
+		hasUserConfirmedClear = false;
+		buttonObject.style.color = "#fff";
+		buttonObject.innerHTML = "Clear All Objects";
+		// MDR DEBUG - TODO: Add JSON request to clear all objects here
+	}
 }
 
 function expand(i,a)

@@ -8,7 +8,7 @@
  */
 
 // version code in format yymmddb (b = daily build)
-#define VERSION 2012190
+#define VERSION 2101020
 
 //uncomment this if you have a "my_config.h" file you'd like to use
 //#define WLED_USE_MY_CONFIG
@@ -114,6 +114,8 @@
 #include "FX.h"
 #include "ir_codes.h"
 #include "const.h"
+
+#include "light_display\LightDisplay.h"
 
 #ifndef CLIENT_SSID
   #define CLIENT_SSID DEFAULT_CLIENT_SSID
@@ -393,6 +395,7 @@ WLED_GLOBAL byte effectCurrent _INIT(0);
 WLED_GLOBAL byte effectSpeed _INIT(128);
 WLED_GLOBAL byte effectIntensity _INIT(128);
 WLED_GLOBAL byte effectPalette _INIT(0);
+WLED_GLOBAL byte effectColorSet _INIT(0);
 
 // network
 WLED_GLOBAL bool udpConnected _INIT(false), udp2Connected _INIT(false), udpRgbConnected _INIT(false);
@@ -526,6 +529,7 @@ WLED_GLOBAL bool e131NewData _INIT(false);
 
 // led fx library object
 WLED_GLOBAL WS2812FX strip _INIT(WS2812FX());
+WLED_GLOBAL LightDisplay lightDisplay _INIT(LightDisplay());
 
 // Usermod manager
 WLED_GLOBAL UsermodManager usermods _INIT(UsermodManager());

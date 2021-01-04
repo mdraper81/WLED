@@ -317,6 +317,8 @@ void WLED::beginStrip()
   strip.setBrightness(0);
   strip.setShowCallback(handleOverlayDraw);
 
+  lightDisplay.init(useRGBW, ledCount);
+
 #if defined(BTNPIN) && BTNPIN > -1
   pinManager.allocatePin(BTNPIN, false);
   pinMode(BTNPIN, INPUT_PULLUP);

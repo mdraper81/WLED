@@ -553,6 +553,7 @@ bool handleSet(AsyncWebServerRequest *request, const String& req, bool apply)
   updateVal(&req, "SX=", &effectSpeed);
   updateVal(&req, "IX=", &effectIntensity);
   updateVal(&req, "FP=", &effectPalette, 0, strip.getPaletteCount()-1);
+  // MDR DEBUG - TODO support macros to set color set here
 
   //set advanced overlay
   pos = req.indexOf(F("OL="));

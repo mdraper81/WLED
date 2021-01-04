@@ -16,11 +16,11 @@ void handleDMX()
 
   // TODO: calculate brightness manually if no shutter channel is set
 
-  uint8_t brightness = strip.getBrightness();
+  uint8_t brightness = lightDisplay.getBrightness();
 
   for (int i = DMXStartLED; i < ledCount; i++) {        // uses the amount of LEDs as fixture count
 
-    uint32_t in = strip.getPixelColor(i);     // get the colors for the individual fixtures as suggested by Aircoookie in issue #462
+    uint32_t in = lightDisplay.getPixelColor(i);     // get the colors for the individual fixtures as suggested by Aircoookie in issue #462
     byte w = in >> 24 & 0xFF;
     byte r = in >> 16 & 0xFF;
     byte g = in >> 8 & 0xFF;
