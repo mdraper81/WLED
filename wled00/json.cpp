@@ -1,4 +1,8 @@
 #include "wled.h"
+#include "lighted_objects/LightedObjectFactory.h"
+#include "lighted_objects/ILightedObject.h"
+
+#include <string>
 
 /*
  * JSON API (De)serialization
@@ -262,6 +266,14 @@ bool deserializeState(JsonObject root)
       deserializeSegment(elem, it);
       it++;
     }
+  }
+
+  if (root.containsKey("lighted_object"))
+  {
+    Serial.printf("MDR DEBUG: Attempting to create lighted object!\n");
+    JsonObject lightedObject = root["lighted_object"];
+    String objectType = lightedObject["object_type"];
+    lightDisplay.createLightedObject(objectType.c_str());
   }
 
   usermods.readFromJsonState(root);
@@ -594,11 +606,40 @@ void serveJson(AsyncWebServerRequest* request)
         doc[F("effects")]  = serialized((const __FlashStringHelper*)JSON_mode_names);
         doc[F("palettes")] = serialized((const __FlashStringHelper*)JSON_palette_names);
         doc[F("colorsets")] = serialized((const __FlashStringHelper*)JSON_colorset_names);
+
+        StringList supportedObjects = LightedObjectFactory::get().getListOfLightedObjectTypes();
+        JsonArray lightedObjects = doc.createNestedArray("supportedObjectTypes");
+        for (std::string objectType : supportedObjects)
+        {
+          lightedObjects.add(objectType.c_str());
+        }
       }
   }
 
-  //lightDisplay.serializeCurrentStateToJson(doc);
+  // MDR DEBUG - TODO - Create a LightDisplaySettings object to store these values and pass a json object to serialize deserialize them
+  JsonObject lightedDisplayObject = doc.createNestedObject("light_display");
+  lightedDisplayObject[F("led_count")] = lightDisplay.getNumberOfLEDs();
+  lightedDisplayObject[F("rgbw_mode")] = lightDisplay.getSupportsWhiteChannel();
+  lightedDisplayObject[F("use_white_channel")] = lightDisplay.useWhiteChannel();
+
+  JsonObject powerStats = lightedDisplayObject.createNestedObject("power_stats");
+  powerStats[F("current")] = 13;
+  powerStats[F("max_current")] = lightDisplay.getMaximumAllowedCurrent();
+
+  JsonArray ledPinsArray = lightedDisplayObject.createNestedArray("led_pins");
+  ledPinsArray.add(LEDPIN);
+
+  JsonArray lightedObjectArray = lightedDisplayObject.createNestedArray("lighted_objects");
+  for (ILightedObject* lightedObject : lightDisplay.getLightedObjects())
+  {
+    JsonObject currentLightedObject = lightedObjectArray.createNestedObject();
+    lightedObject->serializeCurrentStateToJson(currentLightedObject);
+  }
   
+  Serial.printf("-----------------------------------------------------------------\nMDR DEBUG - Sending JSON Response:\n");
+  serializeJsonPretty(doc, Serial);
+  Serial.printf("-----------------------------------------------------------------\n");
+
   response->setLength();
   request->send(response);
 }

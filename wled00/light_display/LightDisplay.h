@@ -3,9 +3,12 @@
 
 #include "Arduino.h"
 #include "NpbWrapper.h"
-#include "lighted_objects\ILightedObject.h"
 
 #include <list>
+#include <string>
+
+// Forward Declarations
+class ILightedObject;
 
 /*
 **-----------------------------------------------------------------------------
@@ -19,14 +22,19 @@
 class LightDisplay
 {
     public:
+        typedef std::list<ILightedObject*> LightedObjectList;
+
         LightDisplay();
         virtual ~LightDisplay();
 
         void init(bool supportWhite, uint16_t totalPixels);
         void runEffect();
 
-        void deserializeAndApplyStateFromJson(JsonObject newState);
-        void serializeCurrentStateToJson(JsonObject& currentState) const;
+        void createLightedObject(std::string objectType);
+
+        const LightedObjectList getLightedObjects() const { return mLightedObjects; }
+        //void deserializeAndApplyStateFromJson(JsonObject newState);
+        //void serializeCurrentStateToJson(JsonObject &currentState) const;
 
     // Accessors / Modfiiers
     public:
@@ -53,6 +61,8 @@ class LightDisplay
         void setRgbwMode(uint8_t newMode) { mRgbwMode = newMode; }
         uint8_t getRgbwMode() const { return mRgbwMode; }
 
+        bool getSupportsWhiteChannel() const { return mSupportsWhiteChannel; }
+
         void enableBrightnessGammaCorrection(bool enabled) { mGammaCorrectBrightness = enabled; }
         bool isBrightnessGammaCorrectionEnabled() const { return mGammaCorrectBrightness; }
 
@@ -61,6 +71,8 @@ class LightDisplay
 
         void enableReverseMode(bool enabled) { mReverseModeEnabled = enabled; }
         bool isReverseModeEnabled() const { return mReverseModeEnabled; }
+
+        bool useWhiteChannel() const; // MDR DEBUG - TODO - this was private
 
     // Private functions
     private:
@@ -73,8 +85,6 @@ class LightDisplay
         uint32_t calculatePowerConsumption();
         uint8_t getPowerBudgetAllowedBrightness(uint32_t powerBudget, uint32_t basePowerConsumption);
         bool useWS2815PowerModel() const;
-
-        bool useWhiteChannel() const;
 
         uint32_t max(uint32_t value1, uint32_t value2) const { return value1 > value2 ? value1 : value2; }
         uint32_t min(uint32_t value1, uint32_t value2) const { return value1 < value2 ? value1 : value2; }
@@ -125,7 +135,6 @@ class LightDisplay
         uint32_t            mCurrentTimestamp;
         uint32_t            mLastShowTimestamp;
 
-        typedef std::list<ILightedObject*> LightedObjectList;
         LightedObjectList   mLightedObjects;
 };
 

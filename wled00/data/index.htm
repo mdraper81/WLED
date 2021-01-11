@@ -1126,12 +1126,17 @@ input[type=number]::-webkit-outer-spin-button {
 	
 	<div id="Objects" class="tabcontent">
 		<!-- Define the main containers for this tab content -->
-		<div id="object_container">
+		<div id="object_list_existing_objects_container">
+			<p class="labels">Existing Objects</p>
 			No objects defined
 		</div>
-		<div id="object_button_container1">
+		<hr>
+		<div id="object_list_new_object_container">
 		</div>
-		<div id="object_button_container2">
+		<div id="object_list_button_container">
+		</div>
+		<hr>
+		<div id="object_list_clear_button_container">
 			<button class="btn btn-s" id="clear_objects_button" onclick="clearObjects()">Clear All Objects</button>
 		</div>
 	</div>
@@ -1407,7 +1412,7 @@ function onLoad() {
 	selectSlot(0);
 	updateTablinks(0);
 	resetUtil();
-	placeAddObjectButtons();
+	//placeAddObjectButtons();
 	cpick.on("input:end", function() {
 		setColor(1);
 	});
@@ -1785,8 +1790,45 @@ function populateSegments(s)
 	d.getElementById('rsbtn').style.display = (segCount > 1) ? "inline":"none";
 }
 
-function populateObjects(s)
+function populateLightDisplay(lightDisplayObject)
 {
+	if (lightDisplayObject != undefined)
+	{
+		var content = ``;
+		content += `<p class="label">Light Display</p>`;
+		content += `<p>Number of LEDs: ${lightDisplayObject.led_count}</p>`;
+		content += `<p>RGBW Mode: ${lightDisplayObject.rgbw_mode}</p>`;
+		content += `<p>Use White Mode: ${lightDisplayObject.use_white_channel}</p>`;
+
+		powerStats = lightDisplayObject.power_stats;
+		content += `<p>Current Power Usage: ${powerStats.current}</p>`;
+		content += `<p>Max Allowed Power Usage: ${powerStats.max_current}</p>`;
+
+		lightedObjectArray = lightDisplayObject.lighted_objects;
+		for (objectIndex in lightedObjectArray)
+		{
+			content += `<div class="lighted_obj">`;
+			content += `  <p>Object Type: ${lightedObjectArray[objectIndex].object_type}</p>`;
+			content += `  <p>Selected Effect Id: ${lightedObjectArray[objectIndex].selectedEffectId}</p>`;
+			content += `  <table class="lighted_object_table">`;
+			content += `    <tr>`;
+			content += `      <td class="lighted_object_table_data">Start Address</td>`;			
+			content += `      <td class="lighted_object_table_data">Num LEDs</td>`;	
+			content += `    </tr>`;
+			content += `    <tr>`;
+			content += `      <td class="lighted_object_table_data"><input class="noslide lighted_object_numeric" id="lighted_object_${objectIndex}_start_address" type="number" min="0" max="${lightDisplayObject.led_count}" value="${lightedObjectArray[objectIndex].startingAddress}" oninput="updateLightedObjects()"></td>`;			
+			content += `      <td class="lighted_object_table_data"><input class="noslide lighted_object_numeric" id="lighted_object_${objectIndex}_num_leds" type="number" min="0" max="${lightDisplayObject.led_count - lightedObjectArray[objectIndex].startingAddress}" value="${lightedObjectArray[objectIndex].numLEDs}" oninput="updateLightedObjects()"></td>`;	
+			content += `    </tr>`;
+			content += `  </table>`;
+			content += `</div>`;
+		}
+
+		d.getElementById('object_list_existing_objects_container').innerHTML = content;
+	}
+	else
+	{
+		d.getElementById('object_list_existing_objects_container').innerHTML = `<p>${lightDisplayObject}</p>`;
+	}
 //	var cn = "";
 //	segCount = 0, lowestUnused = 0; lSeg = 0;
 // 
@@ -1867,6 +1909,11 @@ function populateObjects(s)
 //	if (segCount < 2) d.getElementById(`segd${lSeg}`).style.display = "none";
 //	}
 //	d.getElementById('rsbtn').style.display = (segCount > 1) ? "inline":"none";
+}
+
+function updateLightedObjects()
+{
+	// May be unnecessary
 }
 
 function updateTrail(e, slidercol)
@@ -2030,59 +2077,91 @@ function requestJson(command, rinfo = true, verbose = true) {
 		if (!json) showToast('Empty response', true);
 		if (json.success) return;
 		var s = json;
-		if (!command || rinfo) {
-		if (!rinfo) {
-		pmt = json.info.fs.pmt;
-    if (pmt != pmtLS || pmt == 0) {
-      setTimeout(loadPresets,99);
-    }
-    else populatePresets(true);
-    pmtLast = pmt;
+		populateLightDisplay(s.light_display);
+		if (!command || rinfo) 
+		{
+			if (!rinfo) 
+			{
+				pmt = json.info.fs.pmt;
+				if (pmt != pmtLS || pmt == 0) 
+				{
+      				setTimeout(loadPresets,99);
+    			}
+				else
+				{
+					populatePresets(true);
+				}
+    			pmtLast = pmt;
 
-		var effectsList='';
-		json.effects.shift(); //remove solid
-		for (i in json.effects) json.effects[i] = {id: parseInt(i)+1, name:json.effects[i]};
-		json.effects.sort(compare);
-		for (i in json.effects) {
-		effectsList += `<button class="btn${(i==0)?" first":""}" id="fxb${json.effects[i].id}" onclick="setX(${json.effects[i].id});">${json.effects[i].name}</button><br>`;
-		}
-		effectsButtonList.innerHTML=effectsList;
+				var effectsList='';
+				json.effects.shift(); //remove solid
+				for (i in json.effects)
+				{
+					json.effects[i] = {id: parseInt(i)+1, name:json.effects[i]};
+				}
+				json.effects.sort(compare);
+				for (i in json.effects) 
+				{
+					effectsList += `<button class="btn${(i==0)?" first":""}" id="fxb${json.effects[i].id}" onclick="setX(${json.effects[i].id});">${json.effects[i].name}</button><br>`;
+				}
+				effectsButtonList.innerHTML=effectsList;
 
-		//var paletteList='<option value="0">Default</option>';
-		//json.palettes.shift(); //remove default
-		//for (i in json.palettes) json.palettes[i] = {"id": parseInt(i)+1, "name":json.palettes[i]};
-		//json.palettes.sort(compare);
-		//for (i in json.palettes) {
-		//paletteList += `<option value="${json.palettes[i].id}">${json.palettes[i].name}</option>`;
-		//}
-		//paletteComboBox.innerHTML=paletteList;
+				//var paletteList='<option value="0">Default</option>';
+				//json.palettes.shift(); //remove default
+				//for (i in json.palettes) json.palettes[i] = {"id": parseInt(i)+1, "name":json.palettes[i]};
+				//json.palettes.sort(compare);
+				//for (i in json.palettes) {
+				//paletteList += `<option value="${json.palettes[i].id}">${json.palettes[i].name}</option>`;
+				//}
+				//paletteComboBox.innerHTML=paletteList;
 
-		var colorsetsList='<option value="0">Default</option>';
-		json.colorsets.shift(); //remove default
-		for (i in json.colorsets) json.colorsets[i] = {"id": parseInt(i)+1, "name":json.colorsets[i]};
-		json.colorsets.sort(compare);
-		for (i in json.colorsets) {
-			colorsetsList += `<option value="${json.colorsets[i].id}">${json.colorsets[i].name}</option>`;
-		}
-		colorSetComboBox.innerHTML=colorsetsList;
-		}
+				var colorsetsList='<option value="0">Default</option>';
+				json.colorsets.shift(); //remove default
+				for (i in json.colorsets)
+				{
+					json.colorsets[i] = {"id": parseInt(i)+1, "name":json.colorsets[i]};	
+				} 
+				json.colorsets.sort(compare);
+				for (i in json.colorsets) 
+				{
+					colorsetsList += `<option value="${json.colorsets[i].id}">${json.colorsets[i].name}</option>`;
+				}
+				colorSetComboBox.innerHTML=colorsetsList;
+
+				addCreateLightedObjectButtons(json.supportedObjectTypes);
+			}
 		
 			var info = json.info;
 			var name = info.name;
 			d.getElementById('namelabel').innerHTML = name;
-			if (name === "Dinnerbone") d.documentElement.style.transform = "rotate(180deg)";
-			if (info.live) name = "(Live) " + name;
-		if (loc) name = "(L) " + name;
+			if (name === "Dinnerbone")
+			{
+				d.documentElement.style.transform = "rotate(180deg)";
+			}
+			if (info.live)
+			{
+				name = "(Live) " + name;
+			}
+			if (loc)
+			{
+				name = "(L) " + name;
+			}
 			d.title = name;
 			isRgbw = info.leds.wv;
 			ledCount = info.leds.count;
 			syncTglRecv = info.str;
-      maxSeg = info.leds.maxseg;
-      pmt = info.fs.pmt;
-      if (!command && pmt != pmtLast) setTimeout(loadPresets,99);
-      pmtLast = pmt;
-		lastinfo = info;
-		if (isInfo) populateInfo(info);
+      		maxSeg = info.leds.maxseg;
+      		pmt = info.fs.pmt;
+			if (!command && pmt != pmtLast)
+			{
+				setTimeout(loadPresets,99);
+			}
+      		pmtLast = pmt;
+			lastinfo = info;
+			if (isInfo)
+			{
+				populateInfo(info);
+			}
 			s = json.state;
 			displayRover(info, s);
 		}
@@ -2231,13 +2310,14 @@ function resetUtil() {
 	d.getElementById('segutil').innerHTML = cn;
 }
 
-function placeAddObjectButtons()
+function addCreateLightedObjectButtons(supportedObjectTypes)
 {
-	var buttonContent = `<button class="btn btn-s btn-i" onclick="placeAddLightedObjectUI('Strand')"><i class="icons btn-icon">&#xe18a;</i>Strand</button><br>`;
-	buttonContent += `<button class="btn btn-s btn-i" onclick="placeAddLightedObjectUI('Present')"><i class="icons btn-icon">&#xe18a;</i>Present</button><br>`;
-	buttonContent += `<button class="btn btn-s btn-i" onclick="placeAddLightedObjectUI('Snowflake')"><i class="icons btn-icon">&#xe18a;</i>Snowflake</button><br>`;
-	buttonContent += `<button class="btn btn-s btn-i" onclick="placeAddLightedObjectUI('Spire Tree')"><i class="icons btn-icon">&#xe18a;</i>Spire Tree</button><br>`;
-	d.getElementById('object_button_container1').innerHTML = buttonContent;
+	var buttonContent = ``;
+	for (index = 0; index < supportedObjectTypes.length; index++)
+	{
+		buttonContent += `<button class="btn btn-s btn-i" onclick="createLightedObject('${supportedObjectTypes[index]}')"><i class="icons btn-icon">&#xe18a;</i>${supportedObjectTypes[index]}</button><br>`;
+	}
+	d.getElementById('object_list_button_container').innerHTML = buttonContent;
 }
 
 function placeAddLightedObjectUI(objectType)
@@ -2260,7 +2340,7 @@ function placeAddLightedObjectUI(objectType)
 					</tr>
 				</table>
 				<div class="h" id="seg${lowestUnused}len">${ledCount - 0} LEDs</div>
-				<i class="icons e-icon cnf cnf-s half" id="lighted_object_create_${lowestUnused}" onclick="createLightedObject(); placeAddObjectButtons();">&#xe390;</i>
+				<i class="icons e-icon cnf cnf-s half" id="lighted_object_create_${lowestUnused}" onclick="createLightedObject('${objectType}');">&#xe390;</i>
 			</div>
 		</div>`;
 //	var cn = `<div class="lighted_obj">
@@ -2280,10 +2360,10 @@ function placeAddLightedObjectUI(objectType)
 //					</tr>
 //				</table>
 //				<div class="h" id="seg${lowestUnused}len">${ledCount - ns} LEDs</div>
-//				<i class="icons e-icon cnf cnf-s half" id="lighted_object_create_${lowestUnused}" onclick="createLightedObject(); resetUtil();">&#xe390;</i>
+//				<i class="icons e-icon cnf cnf-s half" id="lighted_object_create_${lowestUnused}" onclick="createLightedObject('${objectType}')); resetUtil();">&#xe390;</i>
 //			</div>
 //		</div>`;
-	d.getElementById('object_button_container1').innerHTML = content;
+	d.getElementById('object_list_new_object_container').innerHTML = content;
 }
 
 function makeP(i) {
@@ -2385,9 +2465,10 @@ function delSeg(s){
 	requestJson(obj, false);
 }
 
-function createLightedObject()
+function createLightedObject(objectType)
 {
-	// MDR DEBUG: TODO - Write code to create object
+	var obj = {"lighted_object": {"object_type": objectType}};
+	requestJson(obj);
 }
 
 function setRev(s){

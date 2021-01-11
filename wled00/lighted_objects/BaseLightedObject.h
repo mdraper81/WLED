@@ -1,10 +1,8 @@
-#ifndef __BASE_LIGHTED_OBJECT
-#define __BASE_LIGHTED_OBJECT
+#pragma once
 
 #include "ILightedObject.h"
 
 #include "Arduino.h"
-#include "NpbWrapper.h"
 
 /*
 **-----------------------------------------------------------------------------
@@ -13,14 +11,17 @@
 ** number of protected functions that can be used by all lighted objects.
 **-----------------------------------------------------------------------------
 */ 
-class BaseLightedObject : ILightedObject
+class BaseLightedObject : public ILightedObject
 {
     public:
-        BaseLightedObject(NeoPixelWrapper *neoPixelWrapper);
+        BaseLightedObject();
         virtual ~BaseLightedObject();
 
     // ILightedObject Interface
     public:
+        /// Returns the name of this object type
+        virtual std::string getObjectType() const { return "BaseLightedObject"; }
+        
         /// All connected LEDs have a unique address, this is the address of the
         /// first LED in this object
         virtual uint16_t getNumberOfLEDs() const { return mNumberOfLEDs; }
@@ -38,6 +39,9 @@ class BaseLightedObject : ILightedObject
         /// This will change the current effect for this object
         virtual void setCurrentEffect(uint16_t effectId) { mSelectedEffectId = 0; }
 
+        // This will pass in the pointer to the Neo Pixel wrapper for the lighted object to interact with
+        virtual void setNeoPixelWrapper(NeoPixelWrapper* neoPixelWrapper) { mPixelWrapper = neoPixelWrapper; }      
+
         /// This will deserialize the given newState object and apply those values 
         /// to this lighted object.  This applies changes from the web
         virtual void deserializeAndApplyStateFromJson(JsonObject newState) { }
@@ -49,6 +53,8 @@ class BaseLightedObject : ILightedObject
     protected:
         void setPixelColor(uint16_t address, uint32_t color);
 
+        void serializeCommonState(JsonObject& currentState) const;
+
     private:
         void setPixelColor(uint16_t address, byte red, byte green, byte blue, byte white);
 
@@ -59,5 +65,3 @@ class BaseLightedObject : ILightedObject
         uint16_t mNumberOfLEDs;
         uint16_t mSelectedEffectId;
 };
-
-#endif

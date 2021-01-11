@@ -4,14 +4,14 @@
 
 /*
 **-----------------------------------------------------------------------------
-** Implementation of a string of led lights
+** Implementation of a wrapped christmas present that has led lights on it
 **-----------------------------------------------------------------------------
 */ 
-class LightStrand : public BaseLightedObject
+class Present : public BaseLightedObject
 {
     public:
-        LightStrand();
-        virtual ~LightStrand();
+        Present();
+        virtual ~Present();
 
         static const char* LIGHTED_OBJECT_TYPE_NAME;
 
@@ -36,10 +36,8 @@ class LightStrand : public BaseLightedObject
         virtual void serializeCurrentStateToJson(JsonObject& currentState) const;
 };
 
-
-
 // Auto-register this lighted object
 namespace LightedObjectRegistration 
 {
-    LightedObjectFactoryRegistration<LightStrand> _LightStrand(LightStrand::LIGHTED_OBJECT_TYPE_NAME);
+    LightedObjectFactoryRegistration<Present> _Present(Present::LIGHTED_OBJECT_TYPE_NAME);
 }

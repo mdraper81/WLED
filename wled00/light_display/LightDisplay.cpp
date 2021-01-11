@@ -1,5 +1,7 @@
 #include "LightDisplay.h"
 
+#include "lighted_objects/LightedObjectFactory.h"
+
 #include "const.h"
 
 #define FASTLED_INTERNAL //remove annoying pragma messages
@@ -103,6 +105,22 @@ void LightDisplay::runEffect()
 
 /*
 ** ============================================================================
+** Creates a new lighted object and adds it to the list of lighted objects for
+** this display.
+**
+**  param   objectType - string specifying which type of lighted object to add.
+** ============================================================================
+*/
+void LightDisplay::createLightedObject(std::string objectType)
+{
+    ILightedObject* newObject = LightedObjectFactory::get().createLightedObject(objectType, mNeoPixelWrapper);
+    mLightedObjects.push_back(newObject);
+    Serial.printf("MDR DEBUG: There are now %d objects in our list of lighted objects\n", mLightedObjects.size());
+}
+
+#if 0
+/*
+** ============================================================================
 ** Parse the given JsonObject and update the state of this object to reflect the
 ** settings in JSON.  This is used to apply changes to the light display from the
 ** web interface.
@@ -132,27 +150,27 @@ void LightDisplay::deserializeAndApplyStateFromJson(JsonObject newState)
 ** Used to populate the web UI with the current values for the display.
 ** ============================================================================
 */
-void LightDisplay::serializeCurrentStateToJson(JsonObject& currentState) const
+void LightDisplay::serializeCurrentStateToJson(JsonObject &currentState) const
 {
-    JsonObject display = currentState.createNestedObject("display");
-    display[F("led_count")] = getNumberOfLEDs();
-    display[F("rgbw_mode")] = mSupportsWhiteChannel;
-    display[F("use_white_channel")] = useWhiteChannel();
+    currentState[F("led_count")] = getNumberOfLEDs();
+    currentState[F("rgbw_mode")] = getSupportsWhiteChannel();
+    currentState[F("use_white_channel")] = useWhiteChannel();
 
-    JsonObject powerStats = display.createNestedObject("power_stats");
+    JsonObject powerStats = currentState.createNestedObject("power_stats");
     powerStats[F("current")] = mCurrentMilliamps;
     powerStats[F("max_current")] = mMaxMilliamps;
 
-    JsonArray ledPinsArray = display.createNestedArray("led_pins");
+    JsonArray ledPinsArray = currentState.createNestedArray("led_pins");
     ledPinsArray.add(LEDPIN);
 
-    JsonArray lightedObjectsArray = display.createNestedArray("lighted_objects");
+    JsonArray lightedObjectsArray = currentState.createNestedArray("lighted_objects");
     for (ILightedObject* lightedObject : mLightedObjects)
     {
         JsonObject currentLightedObject = lightedObjectsArray.createNestedObject();
         lightedObject->serializeCurrentStateToJson(currentLightedObject);
     }
 }
+#endif
 
 /*
 ** ============================================================================

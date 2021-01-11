@@ -1,13 +1,13 @@
-#include "LightStrand.h"
+#include "Present.h"
 
-const char* LightStrand::LIGHTED_OBJECT_TYPE_NAME = "Strand";
+const char* Present::LIGHTED_OBJECT_TYPE_NAME = "Present";
 
 /*
 ** ============================================================================
 ** Constructor
 ** ============================================================================
 */
-LightStrand::LightStrand()
+Present::Present()
     : BaseLightedObject()
 {
 
@@ -18,7 +18,7 @@ LightStrand::LightStrand()
 ** Destructor
 ** ============================================================================
 */
-LightStrand::~LightStrand()
+Present::~Present()
 {
 }
 
@@ -27,7 +27,7 @@ LightStrand::~LightStrand()
 ** Run the currently selected effect
 ** ============================================================================
 */
-uint16_t LightStrand::runEffect()
+uint16_t Present::runEffect()
 {
     for (int address = mStartingAddress; address < mStartingAddress + mNumberOfLEDs; ++address)
     {
@@ -41,7 +41,7 @@ uint16_t LightStrand::runEffect()
 ** lighted object.  This applies changes from the web
 ** ============================================================================
 */
-void LightStrand::deserializeAndApplyStateFromJson(JsonObject newState)
+void Present::deserializeAndApplyStateFromJson(JsonObject newState)
 {
 
 }
@@ -52,7 +52,7 @@ void LightStrand::deserializeAndApplyStateFromJson(JsonObject newState)
 ** lighted object.  This provides the current state to the web
 ** ============================================================================
 */
-void LightStrand::serializeCurrentStateToJson(JsonObject& currentState) const
+void Present::serializeCurrentStateToJson(JsonObject& currentState) const
 {
     serializeCommonState(currentState);
 }

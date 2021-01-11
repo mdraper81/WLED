@@ -1,13 +1,13 @@
-#include "LightStrand.h"
+#include "SpireTree.h"
 
-const char* LightStrand::LIGHTED_OBJECT_TYPE_NAME = "Strand";
+const char* SpireTree::LIGHTED_OBJECT_TYPE_NAME = "Spire Tree";
 
 /*
 ** ============================================================================
 ** Constructor
 ** ============================================================================
 */
-LightStrand::LightStrand()
+SpireTree::SpireTree()
     : BaseLightedObject()
 {
 
@@ -18,7 +18,7 @@ LightStrand::LightStrand()
 ** Destructor
 ** ============================================================================
 */
-LightStrand::~LightStrand()
+SpireTree::~SpireTree()
 {
 }
 
@@ -27,7 +27,7 @@ LightStrand::~LightStrand()
 ** Run the currently selected effect
 ** ============================================================================
 */
-uint16_t LightStrand::runEffect()
+uint16_t SpireTree::runEffect()
 {
     for (int address = mStartingAddress; address < mStartingAddress + mNumberOfLEDs; ++address)
     {
@@ -41,7 +41,7 @@ uint16_t LightStrand::runEffect()
 ** lighted object.  This applies changes from the web
 ** ============================================================================
 */
-void LightStrand::deserializeAndApplyStateFromJson(JsonObject newState)
+void SpireTree::deserializeAndApplyStateFromJson(JsonObject newState)
 {
 
 }
@@ -52,7 +52,7 @@ void LightStrand::deserializeAndApplyStateFromJson(JsonObject newState)
 ** lighted object.  This provides the current state to the web
 ** ============================================================================
 */
-void LightStrand::serializeCurrentStateToJson(JsonObject& currentState) const
+void SpireTree::serializeCurrentStateToJson(JsonObject& currentState) const
 {
     serializeCommonState(currentState);
 }

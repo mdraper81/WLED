@@ -4,14 +4,14 @@
 
 /*
 **-----------------------------------------------------------------------------
-** Implementation of a string of led lights
+** Implementation of a three sided spire christmas tree with leds on it
 **-----------------------------------------------------------------------------
 */ 
-class LightStrand : public BaseLightedObject
+class SpireTree : public BaseLightedObject
 {
     public:
-        LightStrand();
-        virtual ~LightStrand();
+        SpireTree();
+        virtual ~SpireTree();
 
         static const char* LIGHTED_OBJECT_TYPE_NAME;
 
@@ -36,10 +36,8 @@ class LightStrand : public BaseLightedObject
         virtual void serializeCurrentStateToJson(JsonObject& currentState) const;
 };
 
-
-
 // Auto-register this lighted object
 namespace LightedObjectRegistration 
 {
-    LightedObjectFactoryRegistration<LightStrand> _LightStrand(LightStrand::LIGHTED_OBJECT_TYPE_NAME);
+    LightedObjectFactoryRegistration<SpireTree> _SpireTree(SpireTree::LIGHTED_OBJECT_TYPE_NAME);
 }

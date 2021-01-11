@@ -1,9 +1,13 @@
-#ifndef __I_LIGHTED_OBJECT_H
-#define __I_LIGHTED_OBJECT_H
+#pragma once
 
-#include "src/dependencies/json/ArduinoJson-v6.h"
+#include "LightedObjectFactoryRegistration.h"
+
+#include "NpbWrapper.h"
+
+#include "wled.h"
 
 #include <stdint.h>
+
 
 /*
 **-----------------------------------------------------------------------------
@@ -15,6 +19,9 @@
 class ILightedObject
 {
     public:
+        /// Returns the name of this object type
+        virtual std::string getObjectType() const = 0;
+
         /// All connected LEDs have a unique address, this is the address of the
         /// first LED in this object
         virtual uint16_t getNumberOfLEDs() const = 0;
@@ -32,6 +39,9 @@ class ILightedObject
         /// This will change the current effect for this object
         virtual void setCurrentEffect(uint16_t effectId) = 0;
 
+        // This will pass in the pointer to the Neo Pixel wrapper for the lighted object to interact with
+        virtual void setNeoPixelWrapper(NeoPixelWrapper* neoPixelWrapper) = 0;
+
         /// This will deserialize the given newState object and apply those values 
         /// to this lighted object.  This applies changes from the web
         virtual void deserializeAndApplyStateFromJson(JsonObject newState) = 0;
@@ -40,5 +50,3 @@ class ILightedObject
         /// state of this lighted object.  This provides the current state to the web
         virtual void serializeCurrentStateToJson(JsonObject& currentState) const = 0;
 };
-
-#endif
