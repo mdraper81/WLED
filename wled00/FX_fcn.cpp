@@ -646,7 +646,7 @@ uint32_t WS2812FX::color_blend(uint32_t color1, uint32_t color2, uint8_t blend) 
  * Fills segment with color
  */
 void WS2812FX::fill(uint32_t c) {
-  Serial.printf("MDR DEBUG: Setting color 0x%08X\n", c);
+  //Serial.printf("MDR DEBUG: Setting color 0x%08X\n", c);
   for(uint16_t i = 0; i < SEGLEN; i++) {
     setPixelColor(i, c);
   }

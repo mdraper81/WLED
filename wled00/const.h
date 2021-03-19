@@ -183,4 +183,7 @@
   #define JSON_BUFFER_SIZE 16384
 #endif
 
+//simple macro for ArduinoJSON's or syntax
+#define POPULATE_FROM_JSON(a,b) a = b | a
+
 #endif

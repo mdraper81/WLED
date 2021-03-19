@@ -4,8 +4,8 @@
 #include "Arduino.h"
 #include "NpbWrapper.h"
 
-#include <list>
 #include <string>
+#include <vector>
 
 // Forward Declarations
 class ILightedObject;
@@ -22,7 +22,7 @@ class ILightedObject;
 class LightDisplay
 {
     public:
-        typedef std::list<ILightedObject*> LightedObjectList;
+        typedef std::vector<ILightedObject*> LightedObjectList;
 
         LightDisplay();
         virtual ~LightDisplay();
@@ -35,6 +35,14 @@ class LightDisplay
         const LightedObjectList getLightedObjects() const { return mLightedObjects; }
         //void deserializeAndApplyStateFromJson(JsonObject newState);
         //void serializeCurrentStateToJson(JsonObject &currentState) const;
+
+        void clearAllObjects();
+        void deleteObject(int objectIndex);
+        void moveObjectDown(int originalIndex);
+        void moveObjectUp(int originalIndex);
+        void updateObject(int objectIndex, const char* userInputValues);
+
+        ILightedObject* getLightedObject(int objectIndex);
 
     // Accessors / Modfiiers
     public:
@@ -86,11 +94,20 @@ class LightDisplay
         uint8_t getPowerBudgetAllowedBrightness(uint32_t powerBudget, uint32_t basePowerConsumption);
         bool useWS2815PowerModel() const;
 
+        // Lighted object management
+        void swapLightedObjects(int firstIndex, int otherIndex);
+        void resetLightedObjectAddresses();
+
+        // Save/Load functionality
+        void saveToFile() const;
+        void loadFromFile();
+
         uint32_t max(uint32_t value1, uint32_t value2) const { return value1 > value2 ? value1 : value2; }
         uint32_t min(uint32_t value1, uint32_t value2) const { return value1 < value2 ? value1 : value2; }
 
     // Private constants
     private:
+        static const char* SAVE_FILE_NAME;
         static const int MAX_NUM_LIGHTED_OBJECTS = 12;
         static const int MAX_LIGHTED_OBJECT_DATA = 2048;
 
@@ -136,6 +153,17 @@ class LightDisplay
         uint32_t            mLastShowTimestamp;
 
         LightedObjectList   mLightedObjects;
+
+        static const char* LIGHT_DISPLAY_ROOT_ELEMENT;
+        static const char* MAX_PIXELS_ELEMENT;
+        static const char* CURRENT_BRIGHTNESS_ELEMENT;
+        static const char* SUPPORTS_WHITE_ELEMENT;
+        static const char* REVERSE_MODE_ELEMENT;
+        static const char* RGBW_MODE_ELEMENT;
+        static const char* GAMMA_CORRECT_BRIGHTNESS_ELEMENT;
+        static const char* GAMMA_CORRECT_COLOR_ELEMENT;
+        static const char* MAX_MILLIAMPS_ELEMENT;
+        static const char* LIGHTED_OBJECTS_ARRAY_ELEMENT;
 };
 
 #endif

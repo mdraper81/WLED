@@ -19,28 +19,38 @@
 class ILightedObject
 {
     public:
+        /// Accessor and Modifier for the Brightness Percentage.  This is a value from [0, 100]
+        /// that is applied as a percentage of the light display brightness.  This allows individual
+        /// lighted objects to be set to be brighter or dimmer than other objects.
+        virtual int8_t getBrightnessPercentage() const = 0;
+        virtual void setBrightnessPercentage(int8_t newPercentage) = 0;
+        
         /// Returns the name of this object type
         virtual std::string getObjectType() const = 0;
 
-        /// All connected LEDs have a unique address, this is the address of the
-        /// first LED in this object
+        /// This is the number of LEDs that make up this object
         virtual uint16_t getNumberOfLEDs() const = 0;
 
-        /// This is the number of LEDs that make up this object
+        /// All connected LEDs have a unique address, this is the address of the
+        /// first LED in this object
         virtual uint16_t getStartingLEDNumber() const = 0;
+        virtual void setStartingLEDNumber(uint16_t startingAddress) = 0;
 
         /// This will return a JSON list of all effects supported by this type
         /// of object
-        virtual const char* getSupportedEffects() const = 0;
+        virtual std::list<const char*> getSupportedEffects() const = 0;
 
         /// This is called to run another 'frame' of the current effect
         virtual uint16_t runEffect() = 0;
 
-        /// This will change the current effect for this object
-        virtual void setCurrentEffect(uint16_t effectId) = 0;
-
         // This will pass in the pointer to the Neo Pixel wrapper for the lighted object to interact with
         virtual void setNeoPixelWrapper(NeoPixelWrapper* neoPixelWrapper) = 0;
+
+        /// Allows you to toggle the power for this lighted object
+        virtual void togglePower() = 0;      
+
+        /// Updates the parameters of this lighted object using the user input values taken from the UI
+        virtual void update(const char* userInputValues) = 0;
 
         /// This will deserialize the given newState object and apply those values 
         /// to this lighted object.  This applies changes from the web
@@ -49,4 +59,9 @@ class ILightedObject
         /// This will populate the given currentState JSON object with the current 
         /// state of this lighted object.  This provides the current state to the web
         virtual void serializeCurrentStateToJson(JsonObject& currentState) const = 0;
+
+        /// This one JSON element tag is defined in the interface so that we can read it in Light Display
+        /// when trying to decide which type of ILightedObject to create in order to deserialize the 
+        /// array of lighted objects
+        static const char* TYPE_ELEMENT;            
 };

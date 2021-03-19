@@ -268,12 +268,63 @@ bool deserializeState(JsonObject root)
     }
   }
 
-  if (root.containsKey("lighted_object"))
+  // Handle object actions
+  if (root.containsKey("object_action"))
   {
-    Serial.printf("MDR DEBUG: Attempting to create lighted object!\n");
-    JsonObject lightedObject = root["lighted_object"];
-    String objectType = lightedObject["object_type"];
-    lightDisplay.createLightedObject(objectType.c_str());
+    JsonObject objectAction = root["object_action"];
+    String actionType = objectAction["action"];
+
+    if (actionType.compareTo("clear_all_objects") == 0)
+    {
+      lightDisplay.clearAllObjects();
+    }
+    else if (actionType.compareTo("create_object") == 0)
+    {
+      String objectType = objectAction["object_type"];
+      lightDisplay.createLightedObject(objectType.c_str());
+    }
+    else if (actionType.compareTo("delete") == 0)
+    {
+      int objectIndex = objectAction[F("object_index")] | -1;
+      lightDisplay.deleteObject(objectIndex);
+    }
+    else if (actionType.compareTo("move_down") == 0)
+    {
+      int objectIndex = objectAction[F("object_index")] | -1;
+      lightDisplay.moveObjectDown(objectIndex);
+    }
+    else if (actionType.compareTo("move_up") == 0)
+    {
+      int objectIndex = objectAction[F("object_index")] | -1;
+      lightDisplay.moveObjectUp(objectIndex);
+    }
+    else if (actionType.compareTo("save_changes") == 0)
+    {
+      int objectIndex = objectAction[F("object_index")] | -1;
+      String userInputValues = objectAction["userInputs"];
+      lightDisplay.updateObject(objectIndex, userInputValues.c_str());
+    }
+    else if (actionType.compareTo("set_brightness_percentage") == 0)
+    {
+      int objectIndex = objectAction[F("object_index")] | -1;
+      int newBrightnessPercentage = objectAction[F("new_brightness_percentage")] | -1;
+
+      ILightedObject* lightedObject = lightDisplay.getLightedObject(objectIndex);
+      if (lightedObject)
+      {
+          lightedObject->setBrightnessPercentage(newBrightnessPercentage);
+      }
+    }
+    else if (actionType.compareTo("toggle_power") == 0)
+    {
+      int objectIndex = objectAction[F("object_index")] | -1;
+
+      ILightedObject* lightedObject = lightDisplay.getLightedObject(objectIndex);
+      if (lightedObject)
+      {
+          lightedObject->togglePower();
+      }
+    }
   }
 
   usermods.readFromJsonState(root);
@@ -636,9 +687,9 @@ void serveJson(AsyncWebServerRequest* request)
     lightedObject->serializeCurrentStateToJson(currentLightedObject);
   }
   
-  Serial.printf("-----------------------------------------------------------------\nMDR DEBUG - Sending JSON Response:\n");
-  serializeJsonPretty(doc, Serial);
-  Serial.printf("-----------------------------------------------------------------\n");
+  //Serial.printf("-----------------------------------------------------------------\nMDR DEBUG - Sending JSON Response:\n");
+  //serializeJsonPretty(doc, Serial);
+  //Serial.printf("-----------------------------------------------------------------\n");
 
   response->setLength();
   request->send(response);

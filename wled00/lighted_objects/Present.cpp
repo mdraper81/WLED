@@ -1,6 +1,7 @@
 #include "Present.h"
 
 const char* Present::LIGHTED_OBJECT_TYPE_NAME = "Present";
+std::initializer_list<const char*> Present::SUPPORTED_EFFECTS = {"Solid", "Unwrap"};
 
 /*
 ** ============================================================================
@@ -10,7 +11,7 @@ const char* Present::LIGHTED_OBJECT_TYPE_NAME = "Present";
 Present::Present()
     : BaseLightedObject()
 {
-
+    mNumberOfLEDs = 300;
 }
 
 /*
@@ -24,6 +25,17 @@ Present::~Present()
 
 /*
 ** ============================================================================
+** Returns a list of supported effects for this lighted object
+** ============================================================================
+*/
+std::list<const char*> Present::getSupportedEffects() const
+{
+    std::list<const char*> supportedEffects(SUPPORTED_EFFECTS);
+    return supportedEffects;
+}
+
+/*
+** ============================================================================
 ** Run the currently selected effect
 ** ============================================================================
 */
@@ -33,26 +45,4 @@ uint16_t Present::runEffect()
     {
         setPixelColor(address, 0x00FF0085);
     }
-}
-
-/*
-** ============================================================================
-** Deserialize the given newState object and apply those values to this 
-** lighted object.  This applies changes from the web
-** ============================================================================
-*/
-void Present::deserializeAndApplyStateFromJson(JsonObject newState)
-{
-
-}
-
-/*
-** ============================================================================
-** Populate the given currentState JSON object with the current state of this 
-** lighted object.  This provides the current state to the web
-** ============================================================================
-*/
-void Present::serializeCurrentStateToJson(JsonObject& currentState) const
-{
-    serializeCommonState(currentState);
 }

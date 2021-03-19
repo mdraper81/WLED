@@ -1,6 +1,8 @@
 #pragma once
 
 #include "ILightedObject.h"
+#include <map>
+#include <string>
 
 #include "Arduino.h"
 
@@ -19,43 +21,85 @@ class BaseLightedObject : public ILightedObject
 
     // ILightedObject Interface
     public:
+        /// Accessor and Modifier for the Brightness Percentage.  This is a value from [0, 100]
+        /// that is applied as a percentage of the light display brightness.  This allows individual
+        /// lighted objects to be set to be brighter or dimmer than other objects.
+        virtual int8_t getBrightnessPercentage() const { return mBrightnessPercentage; }
+        virtual void setBrightnessPercentage(int8_t newPercentage);
+
         /// Returns the name of this object type
         virtual std::string getObjectType() const { return "BaseLightedObject"; }
         
-        /// All connected LEDs have a unique address, this is the address of the
-        /// first LED in this object
+        /// This is the number of LEDs that make up this object
         virtual uint16_t getNumberOfLEDs() const { return mNumberOfLEDs; }
 
-        /// This is the number of LEDs that make up this object
+        /// All connected LEDs have a unique address, this is the address of the
+        /// first LED in this object
         virtual uint16_t getStartingLEDNumber() const { return mStartingAddress; }
+        virtual void setStartingLEDNumber(uint16_t startingAddress) { mStartingAddress = startingAddress; }
 
         /// This will return a JSON list of all effects supported by this type
         /// of object
-        virtual const char* getSupportedEffects() const { return "[\"None\"]"; }
+        virtual std::list<const char*> getSupportedEffects() const;
 
         /// This is called to run another 'frame' of the current effect
         virtual uint16_t runEffect() { return 0; }
 
-        /// This will change the current effect for this object
-        virtual void setCurrentEffect(uint16_t effectId) { mSelectedEffectId = 0; }
-
         // This will pass in the pointer to the Neo Pixel wrapper for the lighted object to interact with
-        virtual void setNeoPixelWrapper(NeoPixelWrapper* neoPixelWrapper) { mPixelWrapper = neoPixelWrapper; }      
+        virtual void setNeoPixelWrapper(NeoPixelWrapper* neoPixelWrapper) { mPixelWrapper = neoPixelWrapper; }    
+
+        /// Allows you to toggle the power for this lighted object
+        virtual void togglePower() { mPoweredOn = !mPoweredOn; }         
+
+        /// Updates the parameters of this lighted object using the user input values taken from the UI
+        virtual void update(const char* userInputValues); 
 
         /// This will deserialize the given newState object and apply those values 
         /// to this lighted object.  This applies changes from the web
-        virtual void deserializeAndApplyStateFromJson(JsonObject newState) { }
+        virtual void deserializeAndApplyStateFromJson(JsonObject newState) final;
 
         /// This will populate the given currentState JSON object with the current 
         /// state of this lighted object.  This provides the current state to the web
-        virtual void serializeCurrentStateToJson(JsonObject& currentState) const { }
+        virtual void serializeCurrentStateToJson(JsonObject& currentState) const final;
+
+    // Constants
+    protected:
+        static const int MAX_UI_STRING_LENGTH = 64;
+
+        typedef std::map<std::string /* key */, int /* value */> NumericValues;
+        typedef std::pair<std::string, int> NumericValueEntry;
+
+        typedef std::map<std::string /* key */, int /* value */> DropDownSelections;
+        typedef std::pair<std::string, int> DropDownSelectionEntry;
+
+        enum TextTypeE
+        {
+            TextTypeSmall,
+            TextTypeLarge
+        };
+
+    private:
+        static std::initializer_list<const char*> SUPPORTED_EFFECTS;
 
     protected:
         void setPixelColor(uint16_t address, uint32_t color);
 
-        void serializeCommonState(JsonObject& currentState) const;
+        void appendCommonUiElements(JsonArray& uiElementsArray) const;
+        void appendDropDownElement(JsonArray& uiElementsArray, std::list<const char*> optionsList, int selectedIndex, const char* label, const char* inputKey) const;
+        void appendNumericElement(JsonArray& uiElementsArray, const char* name, int minValue, int maxValue, const int currentValue, const char* inputKey) const;
+        void appendStringElement(JsonArray& uiElementsArray, TextTypeE textType, const char* format, ...) const;
+
+    // Functions that are intended to be overriden by derived classes
+    protected: 
+        virtual void deserializeSpecializedData(const JsonObject& stateObject) = 0;
+        virtual void serializeSepecializedData(JsonObject& currentState) const = 0;
+        virtual void onParametersUpdated() = 0;
 
     private:
+        void deserializeUiElements(const JsonArray& uiElementsArray);
+
+        void appendTitleElement(JsonArray& uiElementsArray, const char* format, ...) const;
+
         void setPixelColor(uint16_t address, byte red, byte green, byte blue, byte white);
 
     protected:
@@ -63,5 +107,19 @@ class BaseLightedObject : public ILightedObject
 
         uint16_t mStartingAddress;
         uint16_t mNumberOfLEDs;
-        uint16_t mSelectedEffectId;
+        uint8_t  mBrightnessPercentage;
+        bool     mPoweredOn;
+
+        // Parameter storage that can be used by derived classes, these store
+        // parameters in a map using a string key that corresponds to the key
+        // used by the UI to refer to the parameter.
+        NumericValues mNumericValues;
+        DropDownSelections mDropDownSelections;
+
+        static const char* EFFECT_KEY;     
+
+        static const char* SELECTED_EFFECT_ELEMENT;
+        static const char* BRIGHTNESS_PCT_ELEMENT;
+        static const char* POWERED_ON_ELEMENT;
+        static const char* UI_ELEMENTS_ARRAY_ELEMENT;
 };

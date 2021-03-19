@@ -1,6 +1,7 @@
 #include "LightStrand.h"
 
 const char* LightStrand::LIGHTED_OBJECT_TYPE_NAME = "Strand";
+std::initializer_list<const char*> LightStrand::SUPPORTED_EFFECTS = {"Solid", "Multi-Color Solid", "Chase"};
 
 /*
 ** ============================================================================
@@ -10,7 +11,7 @@ const char* LightStrand::LIGHTED_OBJECT_TYPE_NAME = "Strand";
 LightStrand::LightStrand()
     : BaseLightedObject()
 {
-
+    mNumberOfLEDs = 50;
 }
 
 /*
@@ -20,6 +21,17 @@ LightStrand::LightStrand()
 */
 LightStrand::~LightStrand()
 {
+}
+
+/*
+** ============================================================================
+** Returns a list of supported effects for this lighted object
+** ============================================================================
+*/
+std::list<const char*> LightStrand::getSupportedEffects() const
+{
+    std::list<const char*> supportedEffects(SUPPORTED_EFFECTS);
+    return supportedEffects;
 }
 
 /*
@@ -37,22 +49,12 @@ uint16_t LightStrand::runEffect()
 
 /*
 ** ============================================================================
-** Deserialize the given newState object and apply those values to this 
-** lighted object.  This applies changes from the web
-** ============================================================================
-*/
-void LightStrand::deserializeAndApplyStateFromJson(JsonObject newState)
-{
-
-}
-
-/*
-** ============================================================================
 ** Populate the given currentState JSON object with the current state of this 
 ** lighted object.  This provides the current state to the web
 ** ============================================================================
 */
-void LightStrand::serializeCurrentStateToJson(JsonObject& currentState) const
+void LightStrand::serializeSepecializedData(JsonObject& currentState) const
 {
-    serializeCommonState(currentState);
+    JsonArray uiElementsArray = currentState[UI_ELEMENTS_ARRAY_ELEMENT];
+    appendNumericElement(uiElementsArray, "Strand Length", 0, 1000, 50, "numLights"); // MDR DEBUG - TODO - Get an appropriate max value
 }

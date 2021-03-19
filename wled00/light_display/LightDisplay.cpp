@@ -1,6 +1,9 @@
 #include "LightDisplay.h"
 
+#include "Arduino.h"
+
 #include "lighted_objects/LightedObjectFactory.h"
+#include "lighted_objects/ILightedObject.h"
 
 #include "const.h"
 
@@ -26,6 +29,18 @@ const byte LightDisplay::sGammaTable[] = {
   144,146,148,150,152,154,156,158,160,162,164,167,169,171,173,175,
   177,180,182,184,186,189,191,193,196,198,200,203,205,208,210,213,
   215,218,220,223,225,228,231,233,236,239,241,244,247,249,252,255 };
+
+const char* LightDisplay::SAVE_FILE_NAME = "/lightDisplay.json";
+const char* LightDisplay::LIGHT_DISPLAY_ROOT_ELEMENT = "lightDisplay";
+const char* LightDisplay::MAX_PIXELS_ELEMENT = "maxPixels";
+const char* LightDisplay::CURRENT_BRIGHTNESS_ELEMENT = "currentBrightness";
+const char* LightDisplay::SUPPORTS_WHITE_ELEMENT = "supportsWhite";
+const char* LightDisplay::REVERSE_MODE_ELEMENT = "reverseModeEnabled";
+const char* LightDisplay::RGBW_MODE_ELEMENT = "rgbwMode";
+const char* LightDisplay::GAMMA_CORRECT_BRIGHTNESS_ELEMENT = "gammaCorrectBrightness";
+const char* LightDisplay::GAMMA_CORRECT_COLOR_ELEMENT = "gammaCorrectColor";
+const char* LightDisplay::MAX_MILLIAMPS_ELEMENT = "maxMilliamps";
+const char* LightDisplay::LIGHTED_OBJECTS_ARRAY_ELEMENT = "lightedObjects";
 
 /*
 ** ============================================================================
@@ -70,11 +85,12 @@ LightDisplay::~LightDisplay()
 */
 void LightDisplay::init(bool supportsWhite, uint16_t totalPixels)
 {
-    Serial.printf("MDR DEBUG: Calling LightDisplay::init()");
     mNeoPixelWrapper = new NeoPixelWrapper();
     mLastShowTimestamp = mCurrentTimestamp = 0;
     mMaxPixelsInDisplay = totalPixels;
     mSupportsWhiteChannel = supportsWhite;
+
+    loadFromFile();
 }
 
 /*
@@ -115,7 +131,116 @@ void LightDisplay::createLightedObject(std::string objectType)
 {
     ILightedObject* newObject = LightedObjectFactory::get().createLightedObject(objectType, mNeoPixelWrapper);
     mLightedObjects.push_back(newObject);
-    Serial.printf("MDR DEBUG: There are now %d objects in our list of lighted objects\n", mLightedObjects.size());
+    resetLightedObjectAddresses();
+    saveToFile();
+}
+
+/*
+** ============================================================================
+** Deletes all of the lighted objects in our display
+** ============================================================================
+*/
+void LightDisplay::clearAllObjects()
+{
+    // Unallocate memory for all objects
+    for (ILightedObject* object : mLightedObjects)
+    {
+        delete object;
+    }
+
+    // Clear vector of lighted objects
+    mLightedObjects.clear();
+    saveToFile();
+}
+
+/*
+** ============================================================================
+** Deletes the lighted object at the given index from our mLightedObjects list
+**
+**  param   objectIndex - index of the object to delete
+** ============================================================================
+*/
+void LightDisplay::deleteObject(int objectIndex)
+{
+    if (objectIndex >= 0 && objectIndex < mLightedObjects.size())
+    {
+        ILightedObject* objectToDelete = mLightedObjects[objectIndex];
+        delete objectToDelete;
+        mLightedObjects.erase(mLightedObjects.begin() + objectIndex);
+        resetLightedObjectAddresses();
+        saveToFile();
+    }
+}
+
+/*
+** ============================================================================
+** Moves the lighted object at originalIndex down in the list (to a higher index)
+**
+**  param   originalIndex - index of the object to move
+** ============================================================================
+*/
+void LightDisplay::moveObjectDown(int originalIndex)
+{
+    int newIndex = originalIndex + 1;
+    swapLightedObjects(originalIndex, newIndex);
+    resetLightedObjectAddresses();
+    saveToFile();
+}
+
+/*
+** ============================================================================
+** Moves the lighted object at originalIndex up in the list (to a lower index)
+**
+**  param   originalIndex - index of the object to move
+** ============================================================================
+*/
+void LightDisplay::moveObjectUp(int originalIndex)
+{
+    int newIndex = originalIndex - 1;
+    swapLightedObjects(originalIndex, newIndex);
+    resetLightedObjectAddresses();
+    saveToFile();
+}
+
+/*
+** ============================================================================
+** Updates the lighted object at the given index to set its parameters to the
+** values given in userInputValues
+**
+**  param   objectIndex - index of the object to modify
+**  param   userInputValues - array of user input parameters to update on the 
+**          lighted object
+** ============================================================================
+*/
+void LightDisplay::updateObject(int objectIndex, const char* userInputValues)
+{
+    if (objectIndex >= 0 && objectIndex < mLightedObjects.size())
+    {
+        ILightedObject* objectToUpdate = mLightedObjects[objectIndex];
+        if (nullptr != objectToUpdate)
+        {
+            objectToUpdate->update(userInputValues);
+        }
+        saveToFile();
+    }
+}
+
+/*
+** ============================================================================
+** Returns a pointer to the lighted object at the given index
+**
+**  param   objectIndex - index of the object to modify
+**  returns pointer to lighted object or nullptr
+** ============================================================================
+*/
+ILightedObject* LightDisplay::getLightedObject(int objectIndex)
+{
+    if (objectIndex >= 0 && objectIndex < mLightedObjects.size())
+    {
+        return mLightedObjects[objectIndex];
+    }
+
+    return nullptr;
 }
 
 #if 0
@@ -498,4 +623,130 @@ uint16_t LightDisplay::getNumberOfLEDs() const
 {
     // MDR DEBUG - TODO Loop through each lighted object and call getNumberOfLEDs
     return mMaxPixelsInDisplay;
+}
+
+/*
+** ============================================================================
+** Updates the mLightedObjects list to swap the objects in the two given indices
+**
+**  param firstIndex - the index of one item to be swapped
+**  param otherIndex - the index where you want that item to be swapped to
+** ============================================================================
+*/
+void LightDisplay::swapLightedObjects(int firstIndex, int otherIndex)
+{
+    if (firstIndex >= 0 && firstIndex < mLightedObjects.size() &&
+        otherIndex >= 0 && otherIndex < mLightedObjects.size() &&
+        otherIndex != firstIndex)
+    {
+        ILightedObject* tempPtr = mLightedObjects[firstIndex];
+        mLightedObjects[firstIndex] = mLightedObjects[otherIndex];
+        mLightedObjects[otherIndex] = tempPtr;
+    }
+}
+
+/*
+** ============================================================================
+** This will iterate over the list of lighted objects and reset their addresses
+** so that the object addresses are in the order of the objects in our list.
+** ============================================================================
+*/
+void LightDisplay::resetLightedObjectAddresses()
+{
+    int newStartingAddress = 0;
+    for (ILightedObject* lightedObject : mLightedObjects)
+    {
+        lightedObject->setStartingLEDNumber(newStartingAddress);
+        newStartingAddress += lightedObject->getNumberOfLEDs();
+    }
+}
+
+/*
+** ============================================================================
+** Writes all of the light display details to a save file so that it can be
+** reloaded in future sessions.
+** ============================================================================
+*/
+void LightDisplay::saveToFile() const
+{
+    File fileHandle = WLED_FS.open(SAVE_FILE_NAME, "w");
+    if (fileHandle)
+    {
+        // Create JSON Document to store all the details of the light display
+        DynamicJsonDocument doc(JSON_BUFFER_SIZE);
+
+        // Save info specific to the Light Display itself
+        JsonObject rootObject = doc.createNestedObject(LIGHT_DISPLAY_ROOT_ELEMENT);
+        rootObject[MAX_PIXELS_ELEMENT] = mMaxPixelsInDisplay;
+        rootObject[CURRENT_BRIGHTNESS_ELEMENT] = mCurrentBrightness;
+        rootObject[SUPPORTS_WHITE_ELEMENT] = mSupportsWhiteChannel;
+        rootObject[REVERSE_MODE_ELEMENT] = mReverseModeEnabled;
+        rootObject[RGBW_MODE_ELEMENT] = mRgbwMode;
+        rootObject[GAMMA_CORRECT_BRIGHTNESS_ELEMENT] = mGammaCorrectBrightness;
+        rootObject[GAMMA_CORRECT_COLOR_ELEMENT] = mGammaCorrectColor;
+        rootObject[MAX_MILLIAMPS_ELEMENT] = mMaxMilliamps;
+
+        // Iterate over every lighted object and store the details for those objects
+        JsonArray lightedObjectArray = rootObject.createNestedArray(LIGHTED_OBJECTS_ARRAY_ELEMENT);
+        for (ILightedObject* lightedObject : mLightedObjects)
+        {
+            if (nullptr != lightedObject)
+            {
+                JsonObject lightedObjectJson = lightedObjectArray.createNestedObject();
+                lightedObject->serializeCurrentStateToJson(lightedObjectJson);
+            }
+        }
+
+        // Write the JSON document to our save file
+        serializeJson(doc, fileHandle);
+        fileHandle.close();
+    }
+}
+
+/*
+** ============================================================================
+** Reads the save file to load the light display from the previous session.
+** ============================================================================
+*/
+void LightDisplay::loadFromFile()
+{
+    if (WLED_FS.exists(SAVE_FILE_NAME))
+    {
+        File fileHandle = WLED_FS.open(SAVE_FILE_NAME, "r");
+        if (fileHandle)
+        {
+            // Create a JSON document for our light display and deserialize the
+            // contents of the save file into that document
+            DynamicJsonDocument doc(JSON_BUFFER_SIZE);
+            deserializeJson(doc, fileHandle);
+
+            // Use the JSON document to reconstruct our light display
+            JsonObject rootObject = doc[LIGHT_DISPLAY_ROOT_ELEMENT];
+            POPULATE_FROM_JSON(mMaxPixelsInDisplay, rootObject[MAX_PIXELS_ELEMENT]);
+            POPULATE_FROM_JSON(mCurrentBrightness, rootObject[CURRENT_BRIGHTNESS_ELEMENT]);
+            POPULATE_FROM_JSON(mSupportsWhiteChannel, rootObject[SUPPORTS_WHITE_ELEMENT]);
+            POPULATE_FROM_JSON(mReverseModeEnabled, rootObject[REVERSE_MODE_ELEMENT]);
+            POPULATE_FROM_JSON(mRgbwMode, rootObject[RGBW_MODE_ELEMENT]);
+            POPULATE_FROM_JSON(mGammaCorrectBrightness, rootObject[GAMMA_CORRECT_BRIGHTNESS_ELEMENT]);
+            POPULATE_FROM_JSON(mGammaCorrectColor, rootObject[GAMMA_CORRECT_COLOR_ELEMENT]);
+            POPULATE_FROM_JSON(mMaxMilliamps, rootObject[MAX_MILLIAMPS_ELEMENT]);
+
+            // Recreate each lighted object in the JSON document
+            JsonArray lightedObjectArray = rootObject[LIGHTED_OBJECTS_ARRAY_ELEMENT];
+            for (JsonObject lightedObjectJson : lightedObjectArray)
+            {
+                String objectType = lightedObjectJson[ILightedObject::TYPE_ELEMENT];
+                ILightedObject* newObject = LightedObjectFactory::get().createLightedObject(objectType.c_str(), mNeoPixelWrapper);
+                if (nullptr != newObject)
+                {
+                    newObject->deserializeAndApplyStateFromJson(lightedObjectJson);
+                    mLightedObjects.push_back(newObject);
+                }
+            }
+
+            // Now that we have all of the objects created, reset the object addresses
+            resetLightedObjectAddresses();
+            fileHandle.close();
+        }
+    }
 }
