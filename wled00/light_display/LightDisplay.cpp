@@ -53,6 +53,7 @@ LightDisplay::LightDisplay()
     , mSupportsWhiteChannel( false )
     , mReverseModeEnabled( false )
     , mRgbwMode( RGBW_MODE_DUAL )
+    , mColorOrder( 0 ) // GRB, default for NpbWrapper
     , mGammaCorrectBrightness( false )
     , mGammaCorrectColor( true )
     , mMaxMilliamps( DEFAULT_MAX_MILLIAMPS )
@@ -91,6 +92,15 @@ void LightDisplay::init(bool supportsWhite, uint16_t totalPixels)
     mSupportsWhiteChannel = supportsWhite;
 
     loadFromFile();
+
+    // Make sure that the pixel wrapper has the desired color order set
+    if (getColorOrder() != mColorOrder)
+    {
+        mNeoPixelWrapper->SetColorOrder(mColorOrder);
+    }
+
+    const NeoPixelType pixelType = mSupportsWhiteChannel ? NeoPixelType_Grbw : NeoPixelType_Grb;
+    mNeoPixelWrapper->Begin(pixelType, mMaxPixelsInDisplay);
 }
 
 /*
@@ -100,22 +110,30 @@ void LightDisplay::init(bool supportsWhite, uint16_t totalPixels)
 */
 void LightDisplay::runEffect()
 {
-    uint32_t mCurrentTimestamp = millis(); // Be aware, millis() rolls over every 49 days
-    
+    mCurrentTimestamp = millis(); // Be aware, millis() rolls over every 49 days
+    uint32_t delta = mCurrentTimestamp - mLastShowTimestamp;
+
     // Early exit if it is too soon to setup the next frame
-    if (mCurrentTimestamp - mLastShowTimestamp < MIN_FRAME_TIME_IN_MS)
+    if (delta < MIN_FRAME_TIME_IN_MS)
     {
         return;
     }
 
+    // Go through all lighted objects and setup the next frame.  If one or more are active 
+    // then set isShowRequired to true.
     bool isShowRequired = false;
-    // MDR DEBUG - TODO - go through all lighted objects and setup the next frame
-    // if one or more are active then set isShowRequired to true.
+    for (ILightedObject* lightedObject : mLightedObjects)
+    {
+        if (nullptr != lightedObject)
+        {
+            isShowRequired |= lightedObject->runEffect(delta);
+        }
+    }
 
     if (isShowRequired)
     {
         yield();
-        show();
+        setBrightnessAndShow();
     }
 }
 
@@ -133,6 +151,7 @@ void LightDisplay::createLightedObject(std::string objectType)
     mLightedObjects.push_back(newObject);
     resetLightedObjectAddresses();
     saveToFile();
+    resetAllLeds();
 }
 
 /*
@@ -169,6 +188,7 @@ void LightDisplay::deleteObject(int objectIndex)
         mLightedObjects.erase(mLightedObjects.begin() + objectIndex);
         resetLightedObjectAddresses();
         saveToFile();
+        resetAllLeds();
     }
 }
 
@@ -185,6 +205,7 @@ void LightDisplay::moveObjectDown(int originalIndex)
     swapLightedObjects(originalIndex, newIndex);
     resetLightedObjectAddresses();
     saveToFile();
+    resetAllLeds();
 }
 
 /*
@@ -200,6 +221,7 @@ void LightDisplay::moveObjectUp(int originalIndex)
     swapLightedObjects(originalIndex, newIndex);
     resetLightedObjectAddresses();
     saveToFile();
+    resetAllLeds();
 }
 
 /*
@@ -222,6 +244,7 @@ void LightDisplay::updateObject(int objectIndex, const char* userInputValues)
             objectToUpdate->update(userInputValues);
         }
         saveToFile();
+        resetAllLeds();
     }
 }
 
@@ -348,7 +371,7 @@ void LightDisplay::setBrightness(uint8_t newBrightness)
     uint32_t currentTime = millis();
     if (currentTime - mLastShowTimestamp > MIN_FRAME_TIME_IN_MS)
     {
-        show();
+        setBrightnessAndShow();
     }
 }
 
@@ -359,6 +382,8 @@ void LightDisplay::setBrightness(uint8_t newBrightness)
 */
 void LightDisplay::setColorOrder(uint8_t newColorOrder)
 {
+    mColorOrder = newColorOrder;
+
     // Early exit if neo pixel wrapper is not yet setup
     if (nullptr == mNeoPixelWrapper)
     {
@@ -418,7 +443,7 @@ uint32_t LightDisplay::getPixelColor(uint16_t address) const
 ** I am NOT to be held liable for burned down garages!
 ** ============================================================================
 */
-void LightDisplay::show()
+void LightDisplay::setBrightnessAndShow()
 {
     // Early exit if neo pixel wrapper is not yet setup
     if (nullptr == mNeoPixelWrapper)
@@ -659,6 +684,32 @@ void LightDisplay::resetLightedObjectAddresses()
         lightedObject->setStartingLEDNumber(newStartingAddress);
         newStartingAddress += lightedObject->getNumberOfLEDs();
     }
+}
+
+/*
+** ============================================================================
+** Sets all LEDs in the display to black and forces the update to reset everything.
+** This can be called any time we update the lighted objects that make up the
+** display.
+** ============================================================================
+*/
+void LightDisplay::resetAllLeds()
+{
+    // Early exit if we don't have a valid neo pixel wrapper
+    if (nullptr == mNeoPixelWrapper)
+    {
+        return;
+    }
+
+    // Set all LEDs to black
+    RgbwColor noColor = 0x00000000; // Black
+    for (int address = 0; address < mMaxPixelsInDisplay; ++address)
+    {
+        mNeoPixelWrapper->SetPixelColor(address, noColor);
+    }
+
+    // Force the update
+    setBrightnessAndShow();
 }
 
 /*

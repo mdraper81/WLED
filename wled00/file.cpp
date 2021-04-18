@@ -272,9 +272,16 @@ bool writeObjectToFile(const char* file, const char* key, JsonDocument* content)
     s = millis();
   #endif
 
+  Serial.printf("Write to %s with key %s >>>\n", file, (key==nullptr)?"nullptr":key);
+  serializeJsonPretty(*content, Serial);
+  Serial.printf("-----\n");
+
   uint32_t pos = 0;
   f = WLED_FS.open(file, "r+");
-  if (!f && !WLED_FS.exists(file)) f = WLED_FS.open(file, "w+");
+  if (!f && !WLED_FS.exists(file))
+  {
+    f = WLED_FS.open(file, "w+");
+  } 
   if (!f) {
     DEBUGFS_PRINTLN(F("Failed to open!"));
     return false;
@@ -301,24 +308,38 @@ bool writeObjectToFile(const char* file, const char* key, JsonDocument* content)
   //4. The new content is larger than old + trailing spaces, delete old and append
   
   uint32_t contentLen = 0;
-  if (!content->isNull()) contentLen = measureJson(*content);
+  if (!content->isNull())
+  { 
+    contentLen = measureJson(*content);
+  }
 
-  if (contentLen && contentLen <= oldLen) { //replace and fill diff with spaces
+  if (contentLen && contentLen <= oldLen)
+  { //replace and fill diff with spaces
     DEBUGFS_PRINTLN(F("replace"));
     f.seek(pos);
     serializeJson(*content, f);
     writeSpace(pos2 - f.position());
-  } else if (contentLen && bufferedFindSpace(contentLen - oldLen, false)) { //enough leading spaces to replace
+  } 
+  else if (contentLen && bufferedFindSpace(contentLen - oldLen, false)) 
+  { //enough leading spaces to replace
     DEBUGFS_PRINTLN(F("replace (trailing)"));
     f.seek(pos);
     serializeJson(*content, f);
-  } else {
+  } 
+  else 
+  {
     DEBUGFS_PRINTLN(F("delete"));
     pos -= strlen(key);
-    if (pos > 3) pos--; //also delete leading comma if not first object
+    if (pos > 3) 
+    {
+      pos--; //also delete leading comma if not first object
+    }
     f.seek(pos);
     writeSpace(pos2 - pos);
-    if (contentLen) return appendObjectToFile(key, content, s, contentLen);
+    if (contentLen)
+    {
+      return appendObjectToFile(key, content, s, contentLen);
+    }
   }
 
   doCloseFile = true;

@@ -42,8 +42,9 @@ class BaseLightedObject : public ILightedObject
         /// of object
         virtual std::list<const char*> getSupportedEffects() const;
 
-        /// This is called to run another 'frame' of the current effect
-        virtual uint16_t runEffect() { return 0; }
+        /// This is called to run another 'frame' of the current effect.  Returns true if any pixels in this
+        /// object have changed.
+        virtual bool runEffect(uint32_t delta) { return false; }
 
         // This will pass in the pointer to the Neo Pixel wrapper for the lighted object to interact with
         virtual void setNeoPixelWrapper(NeoPixelWrapper* neoPixelWrapper) { mPixelWrapper = neoPixelWrapper; }    

@@ -41,7 +41,7 @@ class ILightedObject
         virtual std::list<const char*> getSupportedEffects() const = 0;
 
         /// This is called to run another 'frame' of the current effect
-        virtual uint16_t runEffect() = 0;
+        virtual bool runEffect(uint32_t delta) = 0;
 
         // This will pass in the pointer to the Neo Pixel wrapper for the lighted object to interact with
         virtual void setNeoPixelWrapper(NeoPixelWrapper* neoPixelWrapper) = 0;

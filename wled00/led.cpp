@@ -5,6 +5,7 @@
  */
 void setValuesFromMainSeg()
 {
+#ifdef ENABLE_SET_EFFECTS // MDR TEMP - removing set effects functionality
   WS2812FX::Segment& seg = strip.getSegment(strip.getMainSegmentId());
   colorFromUint32(seg.colors[0]);
   colorFromUint32(seg.colors[1], true);
@@ -13,12 +14,15 @@ void setValuesFromMainSeg()
   effectIntensity = seg.intensity;
   effectPalette = seg.palette;
   effectColorSet = seg.colorset;
+#endif // ENABLE_SET_EFFECTS
 }
 
 
 void resetTimebase()
 {
+#ifdef ENABLE_SET_EFFECTS // MDR TEMP - removing set effects functionality  
   strip.timebase = 0 - millis();
+#endif // ENABLE_SET_EFFECTS
 }
 
 
@@ -45,18 +49,22 @@ byte scaledBri(byte in)
 }
 
 
-void setAllLeds() {
+void setAllLeds()
+{
+#ifdef ENABLE_SET_ALL_LEDS // MDR TEMP - removing set all LEDs functionality  
   if (!realtimeMode || !arlsForceMaxBri)
   {
-    strip.setBrightness(scaledBri(briT));
+    lightDisplay.setBrightness(scaledBri(briT));
   }
-  if (useRGBW && strip.rgbwMode == RGBW_MODE_LEGACY)
+  if (useRGBW && lightDisplay.getRgbwMode() == RGBW_MODE_LEGACY)
   {
     colorRGBtoRGBW(colT);
     colorRGBtoRGBW(colSecT);
   }
-  strip.setColor(0, colT[0], colT[1], colT[2], colT[3]);
-  strip.setColor(1, colSecT[0], colSecT[1], colSecT[2], colSecT[3]);
+  // MDR DEBUG: TODO - Determine if we need to create a setColor function for LightDisplay
+  //strip.setColor(0, colT[0], colT[1], colT[2], colT[3]); // MDR TEMP
+  //strip.setColor(1, colSecT[0], colSecT[1], colSecT[2], colSecT[3]); // MDR TEMP
+#endif // ENABLE_SET_ALL_LEDS
 }
 
 
@@ -90,11 +98,15 @@ bool colorChanged()
 
 void colorUpdated(int callMode)
 {
+#ifdef ENABLE_SET_EFFECTS // MDR TEMP - removing the set effects feature
   //call for notifier -> 0: init 1: direct change 2: button 3: notification 4: nightlight 5: other (No notification)
   //                     6: fx changed 7: hue 8: preset cycle 9: blynk 10: alexa
   if (callMode != NOTIFIER_CALL_MODE_INIT && 
       callMode != NOTIFIER_CALL_MODE_DIRECT_CHANGE && 
-      callMode != NOTIFIER_CALL_MODE_NO_NOTIFY) strip.applyToAllSelected = true; //if not from JSON api, which directly sets segments
+      callMode != NOTIFIER_CALL_MODE_NO_NOTIFY)
+  {
+    strip.applyToAllSelected = true; //if not from JSON api, which directly sets segments
+  }
 
   bool someSel = false;
 
@@ -103,7 +115,10 @@ void colorUpdated(int callMode)
   }
   
   //Notifier: apply received FX to selected segments only if actually receiving FX
-  if (someSel) strip.applyToAllSelected = receiveNotificationEffects;
+  if (someSel)
+  {
+    strip.applyToAllSelected = receiveNotificationEffects;
+  }
 
   bool fxChanged = strip.setEffectConfig(effectCurrent, effectSpeed, effectIntensity, effectPalette, effectColorSet);
   bool colChanged = colorChanged();
@@ -181,6 +196,7 @@ void colorUpdated(int callMode)
     setLedsStandard();
     strip.trigger();
   }
+#endif // ENABLE_SET_EFFECTS  
 }
 
 
@@ -215,7 +231,9 @@ void handleTransitions()
     float tper = (millis() - transitionStartTime)/(float)transitionDelayTemp;
     if (tper >= 1.0)
     {
+#ifdef ENABLE_TRANSITIONS // MDR TEMP - removing transitions functionality        
       strip.setTransitionMode(false);
+#endif // ENABLE_TRANSITIONS
       transitionActive = false;
       tperLast = 0;
       setLedsStandard();
@@ -253,7 +271,9 @@ void handleNightlight()
         colNlT[1] = effectSpeed;
         colNlT[2] = effectPalette;
 
+#ifdef ENABLE_NIGHTLIGHT // MDR TEMP - removing nightlight functionality        
         strip.setMode(strip.getMainSegmentId(), FX_MODE_STATIC); //make sure seg runtime is reset if left in sunrise mode
+#endif // ENABLE_NIGHTLIGHT
         effectCurrent = FX_MODE_SUNRISE;
         effectSpeed = nightlightDelayMins;
         effectPalette = 0;
@@ -326,5 +346,6 @@ void handleNightlight()
 //utility for FastLED to use our custom timer
 uint32_t get_millisecond_timer()
 {
-  return strip.now;
+  return lightDisplay.getCurrentTimestamp();
+  // return strip.now; // MDR TEMP
 }

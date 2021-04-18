@@ -1250,18 +1250,6 @@ input[type=number]::-webkit-outer-spin-button {
 		</div>
 	</div>
 
-	<div id="Segments" class="tabcontent">
-		<div id="segcont">
-			Loading...
-		</div>
-		<div id="segutil">
-			
-		</div>
-		<div id="segutil2">
-			<button class="btn btn-s" id="rsbtn" onclick="rSegs()">Reset segments</button>
-		</div>
-	</div>
-
 	<div id="Favorites" class="tabcontent">
 		<div id="putil">
 			
@@ -1288,7 +1276,6 @@ input[type=number]::-webkit-outer-spin-button {
 	<button class="tablinks" onclick="openTab(0)"><i class="icons">&#xe2b3;</i><p class="tab-label">Colors</p></button>
 	<button class="tablinks" onclick="openTab(1)"><i class="icons">&#xe23d;</i><p class="tab-label">Effects</p></button>
 	<button class="tablinks" onclick="openTab(2)"><i class="icons">&#xe34b;</i><p class="tab-label">Objects</p></button>
-	<button class="tablinks" onclick="openTab(3)"><i class="icons">&#xe34b;</i><p class="tab-label">Segments</p></button>
 	<button class="tablinks" onclick="openTab(4)"><i class="icons">&#xe04c;</i><p class="tab-label">Favorites</p></button>
 </div>
 
@@ -1331,7 +1318,7 @@ input[type=number]::-webkit-outer-spin-button {
 !function(e,t){"object"==typeof exports&&"undefined"!=typeof module?module.exports=t():"function"==typeof define&&define.amd?define("RangeTouch",t):e.RangeTouch=t()}(this,function(){"use strict";function e(e,t){for(var n=0;n<t.length;n++){var r=t[n];r.enumerable=r.enumerable||!1,r.configurable=!0,"value"in r&&(r.writable=!0),Object.defineProperty(e,r.key,r)}}var t={addCSS:!0,thumbWidth:15,watch:!0};var n=function(e){return null!=e?e.constructor:null},r=function(e,t){return!!(e&&t&&e instanceof t)},u=function(e){return null==e},i=function(e){return n(e)===Object},o=function(e){return n(e)===String},a=function(e){return Array.isArray(e)},c=function(e){return r(e,NodeList)},l={nullOrUndefined:u,object:i,number:function(e){return n(e)===Number&&!Number.isNaN(e)},string:o,boolean:function(e){return n(e)===Boolean},function:function(e){return n(e)===Function},array:a,nodeList:c,element:function(e){return r(e,Element)},event:function(e){return r(e,Event)},empty:function(e){return u(e)||(o(e)||a(e)||c(e))&&!e.length||i(e)&&!Object.keys(e).length}};function s(e,t){if(1>t){var n=function(e){var t="".concat(e).match(/(?:\.(\d+))?(?:[eE]([+-]?\d+))?$/);return t?Math.max(0,(t[1]?t[1].length:0)-(t[2]?+t[2]:0)):0}(t);return parseFloat(e.toFixed(n))}return Math.round(e/t)*t}return function(){function n(e,r){(function(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")})(this,n),l.element(e)?this.element=e:l.string(e)&&(this.element=document.querySelector(e)),l.element(this.element)&&l.empty(this.element.rangeTouch)&&(this.config=Object.assign({},t,r),this.init())}return r=n,i=[{key:"setup",value:function(e){var r=1<arguments.length&&void 0!==arguments[1]?arguments[1]:{},u=null;if(l.empty(e)||l.string(e)?u=Array.from(document.querySelectorAll(l.string(e)?e:'input[type="range"]')):l.element(e)?u=[e]:l.nodeList(e)?u=Array.from(e):l.array(e)&&(u=e.filter(l.element)),l.empty(u))return null;var i=Object.assign({},t,r);l.string(e)&&i.watch&&new MutationObserver(function(t){Array.from(t).forEach(function(t){Array.from(t.addedNodes).forEach(function(t){l.element(t)&&function(e,t){return function(){return Array.from(document.querySelectorAll(t)).includes(this)}.call(e,t)}(t,e)&&new n(t,i)})})}).observe(document.body,{childList:!0,subtree:!0});return u.map(function(e){return new n(e,r)})}},{key:"enabled",get:function(){return"ontouchstart"in document.documentElement}}],(u=[{key:"init",value:function(){n.enabled&&(this.config.addCSS&&(this.element.style.userSelect="none",this.element.style.webKitUserSelect="none",this.element.style.touchAction="manipulation"),this.listeners(!0),this.element.rangeTouch=this)}},{key:"destroy",value:function(){n.enabled&&(this.listeners(!1),this.element.rangeTouch=null)}},{key:"listeners",value:function(e){var t=this,n=e?"addEventListener":"removeEventListener";["touchstart","touchmove","touchend"].forEach(function(e){t.element[n](e,function(e){return t.set(e)},!1)})}},{key:"get",value:function(e){if(!n.enabled||!l.event(e))return null;var t,r=e.target,u=e.changedTouches[0],i=parseFloat(r.getAttribute("min"))||0,o=parseFloat(r.getAttribute("max"))||100,a=parseFloat(r.getAttribute("step"))||1,c=r.getBoundingClientRect(),f=100/c.width*(this.config.thumbWidth/2)/100;return 0>(t=100/c.width*(u.clientX-c.left))?t=0:100<t&&(t=100),50>t?t-=(100-2*t)*f:50<t&&(t+=2*(t-50)*f),i+s(t/100*(o-i),a)}},{key:"set",value:function(e){n.enabled&&l.event(e)&&!e.target.disabled&&(e.preventDefault(),e.target.value=this.get(e),function(e,t){if(e&&t){var n=new Event(t);e.dispatchEvent(n)}}(e.target,"touchend"===e.type?"change":"input"))}}])&&e(r.prototype,u),i&&e(r,i),n;var r,u,i}()});
 //page js
 var loc = false, locip;
-var ps = false, noNewSegs = false;
+var ps = false;
 var isOn = false, nlA = false, isLv = false, isInfo = false, syncSend = false, syncTglRecv = true, isRgbw = false;
 var whites = [0,0,0];
 var expanded = [false];
@@ -1342,7 +1329,7 @@ var selectedFx = 0;
 var csel = 0;
 var currentPreset = -1;
 var lastUpdate = 0;
-var segCount = 0, ledCount = 0, lowestUnused = 0, maxSeg = 0, lSeg = 0;
+var ledCount = 0, lowestUnused = 0;
 var pcMode = false, pcModeA = false, lastw = 0;
 var d = document;
 const ranges = RangeTouch.setup('input[type="range"]', {});
@@ -1520,7 +1507,6 @@ function onLoad() {
 	}
 	selectSlot(0);
 	updateTablinks(0);
-	resetUtil();
 	//placeAddObjectButtons();
 	cpick.on("input:end", function() {
 		setColor(1);
@@ -1815,90 +1801,6 @@ function populateInfo(i)
 	d.getElementById('kv').innerHTML = cn;
 }
 
-function populateSegments(s)
-{
-	var cn = "";
-	segCount = 0, lowestUnused = 0; lSeg = 0;
- 
-	for (y in s.seg)
-	{
-		segCount++;
-		
-		var inst=s.seg[y];
-		var i = parseInt(inst.id);
-		powered[i] = inst.on;
-		if (i == lowestUnused) lowestUnused = i+1;
-		if (i > lSeg) lSeg = i;
-		
-		cn += `<div class="seg">
-			<label class="check schkl">
-				&nbsp;
-				<input type="checkbox" id="seg${i}sel" onchange="selSeg(${i})" ${inst.sel ? "checked":""}>
-				<span class="checkmark schk"></span>
-			</label>
-			<div class="segname" onclick="selSegEx(${i})">
-				Segment ${i}
-			</div>
-			<i class="icons e-icon flr ${expanded[i] ? "exp":""}" id="sege${i}" onclick="expand(${i})">&#xe395;</i>
-			<div class="segin ${expanded[i] ? "expanded":""}" id="seg${i}">
-			<table class="segt">
-				<tr>
-					<td class="segtd">Start LED</td>
-					<td class="segtd">Stop LED</td>
-				</tr>
-				<tr>
-					<td class="segtd"><input class="noslide segn" id="seg${i}s" type="number" min="0" max="${ledCount-1}" value="${inst.start}" oninput="updateLen(${i})"></td>
-					<td class="segtd"><input class="noslide segn" id="seg${i}e" type="number" min="0" max="${ledCount}" value="${inst.stop}" oninput="updateLen(${i})"></td>
-				</tr>
-			</table>
-			<table class="segt">
-				<tr>
-					<td class="segtd">Grouping</td>
-					<td class="segtd">Spacing</td>
-				</tr>
-				<tr>
-					<td class="segtd"><input class="noslide segn" id="seg${i}grp" type="number" min="1" max="255" value="${inst.grp}" oninput="updateLen(${i})"></td>
-					<td class="segtd"><input class="noslide segn" id="seg${i}spc" type="number" min="0" max="255" value="${inst.spc}" oninput="updateLen(${i})"></td>
-				</tr>
-			</table>
-			<div class="h bp" id="seg${i}len"></div>
-			<i class="icons e-icon pwr ${powered[i] ? "act":""}" id="seg${i}pwr" onclick="setSegPwr(${i})">&#xe08f;</i>
-			<div class="sliderwrap il sws">
-				<input id="seg${i}bri" class="noslide sis" onchange="setSegBri(${i})" oninput="updateTrail(this)" max="255" min="1" type="range" value="${inst.bri}" />
-				<div class="sliderdisplay"></div>
-			</div>
-				<i class="icons e-icon cnf cnf-s" id="segc${i}" onclick="setSeg(${i})">&#xe390;</i>
-				<i class="icons e-icon del" id="segd${i}" onclick="delSeg(${i})">&#xe037;</i>
-				<label class="check revchkl">
-					Reverse direction
-					<input type="checkbox" id="seg${i}rev" onchange="setRev(${i})" ${inst.rev ? "checked":""}>
-					<span class="checkmark schk"></span>
-				</label>
-				<label class="check revchkl">
-					Mirror effect
-					<input type="checkbox" id="seg${i}mi" onchange="setMi(${i})" ${inst.mi ? "checked":""}>
-					<span class="checkmark schk"></span>
-				</label>
-			</div>
-		</div><br>`;
-	}
-
-	d.getElementById('segcont').innerHTML = cn;
-	if (lowestUnused >= maxSeg) {
-		d.getElementById('segutil').innerHTML = '<span class="h">Maximum number of segments reached.</span>';
-		noNewSegs = true;
-	} else if (noNewSegs) {
-		resetUtil();
-		noNewSegs = false;
-	}
-	for (i = 0; i <= lSeg; i++) {
-	updateLen(i);
-	updateTrail(d.getElementById(`seg${i}bri`));
-	if (segCount < 2) d.getElementById(`segd${lSeg}`).style.display = "none";
-	}
-	d.getElementById('rsbtn').style.display = (segCount > 1) ? "inline":"none";
-}
-
 function populateLightDisplay(lightDisplayObject)
 {
 	if (lightDisplayObject != undefined)
@@ -2043,7 +1945,7 @@ function addNumericElement(lightedObjectIndex, elementIndex, elementDefinition)
 
 	var content = `<div>`;
 	content += `    <label class="lighted_object_label" for="${idString}">${elementDefinition.label}</label>`;
-	content += `    <input class="noslide lighted_object_label" id="${idString}" type="number" min="${elementDefinition.minValue}" max="${elementDefinition.maxValue}" value="${elementDefinition.value}" oninput="updateLen(${i})">`;
+	content += `    <input class="noslide lighted_object_label" id="${idString}" type="number" min="${elementDefinition.minValue}" max="${elementDefinition.maxValue}" value="${elementDefinition.value}">`;
 	content += `</div>`;
 	return content;
 }
@@ -2210,38 +2112,9 @@ function toggleBubble(e)
 	e.target.parentNode.querySelector('output').classList.toggle('hidden');
 }
 
-function updateLen(s)
-{
-	if (!d.getElementById(`seg${s}s`)) return;
-	var start = parseInt(d.getElementById(`seg${s}s`).value);
-	var stop	= parseInt(d.getElementById(`seg${s}e`).value);
-	var len = stop - start;
-	var out = "(delete)"
-	if (len > 1) {
-		out = `${len} LEDs`;
-	} else if (len == 1) {
-		out = "1 LED"
-	}
-	
-	if (d.getElementById(`seg${s}grp`) != null)
-	{
-		var grp = parseInt(d.getElementById(`seg${s}grp`).value);
-		var spc = parseInt(d.getElementById(`seg${s}spc`).value);
-		if (grp == 0) grp = 1;
-		var virt = Math.ceil(len/(grp + spc));
-		if (!isNaN(virt) && (grp > 1 || spc > 0)) out += ` (${virt} virtual)`;
-	}
-	
-	d.getElementById(`seg${s}len`).innerHTML = out;
-}
-
 function updatePA()
 {
-	var ps = d.getElementsByClassName("seg");
-	for (i = 0; i < ps.length; i++) {
-		ps[i].style.backgroundColor = "var(--c-2)";
-	}
-	ps = d.getElementsByClassName("psts");
+	var ps = d.getElementsByClassName("psts");	
 	for (i = 0; i < ps.length; i++) {
 		ps[i].style.backgroundColor = "var(--c-2)";
 	}
@@ -2349,10 +2222,6 @@ function requestJson(command, rinfo = true, verbose = true) {
 				{
       				setTimeout(loadPresets,99);
     			}
-				else
-				{
-					populatePresets(true);
-				}
     			pmtLast = pmt;
 
 				var effectsList='';
@@ -2412,7 +2281,6 @@ function requestJson(command, rinfo = true, verbose = true) {
 			isRgbw = info.leds.wv;
 			ledCount = info.leds.count;
 			syncTglRecv = info.str;
-      		maxSeg = info.leds.maxseg;
       		pmt = info.fs.pmt;
 			if (!command && pmt != pmtLast)
 			{
@@ -2442,32 +2310,13 @@ function requestJson(command, rinfo = true, verbose = true) {
 		d.getElementById('cyct').value = s.ccnf.time /10;
 		d.getElementById('cyctt').value = s.transition /10;
 		
-		var selc=0; var ind=0;
-		populateSegments(s);
-		for (i in s.seg)
-		{
-			if(s.seg[i].sel) {selc = ind; break;} ind++;
-		}
-		var i=s.seg[selc];
-		if (!i) {
-			showToast('No Segments!', true);
-			updateUI();
-			return;
-		}
-		var cd = d.getElementById('csl').children;
-		for (e = 2; e >= 0; e--)
-		{
-			cd[e].style.backgroundColor = "rgb(" + i.col[e][0] + "," + i.col[e][1] + "," + i.col[e][2] + ")";
-			if (isRgbw) whites[e] = parseInt(i.col[e][3]);
-			selectSlot(csel);
-		}
 		d.getElementById('sliderSpeed').value = whites[csel];
 
 		d.getElementById('sliderSpeed').value = i.sx;
 		d.getElementById('sliderIntensity').value = i.ix;
 
 		d.getElementById('fxb' + selectedFx).style.backgroundColor = "var(--c-3)";
-		selectedFx = i.fx;
+		selectedFx = 0;
 		//paletteComboBox.value = i.pal;
 		colorSetComboBox.value = i.colorset;
 		if (!command) d.getElementById('Effects').scrollTop = d.getElementById('fxb' + selectedFx).offsetTop - d.getElementById('Effects').clientHeight/1.8;
@@ -2538,39 +2387,6 @@ function toggleInfo() {
 	d.getElementById('buttonI').className = (isInfo) ? "active":"";
 }
 
-function makeSeg() {
-	var ns = 0;
-	if (lowestUnused > 0) {
-		var pend = d.getElementById(`seg${lowestUnused -1}e`).value;
-		if (pend < ledCount) ns = pend;
-	}
-	var cn = `<div class="seg">
-			<div class="segname newseg">
-				New segment ${lowestUnused}
-			</div>
-			<br>
-			<div class="segin expanded">
-				<table class="segt">
-					<tr>
-						<td class="segtd">Start LED</td>
-						<td class="segtd">Stop LED</td>
-					</tr>
-					<tr>
-						<td class="segtd"><input class="noslide segn" id="seg${lowestUnused}s" type="number" min="0" max="${ledCount-1}" value="${ns}" oninput="updateLen(${lowestUnused})"></td>
-						<td class="segtd"><input class="noslide segn" id="seg${lowestUnused}e" type="number" min="0" max="${ledCount}" value="${ledCount}" oninput="updateLen(${lowestUnused})"></td>
-					</tr>
-				</table>
-				<div class="h" id="seg${lowestUnused}len">${ledCount - ns} LEDs</div>
-				<i class="icons e-icon cnf cnf-s half" id="segc${lowestUnused}" onclick="setSeg(${lowestUnused}); resetUtil();">&#xe390;</i>
-			</div>
-		</div>`;
-	d.getElementById('segutil').innerHTML = cn;
-}
-
-function resetUtil() {
-	var cn = `<button class="btn btn-s btn-i" onclick="makeSeg()"><i class="icons btn-icon">&#xe18a;</i>Add segment</button><br>`;
-	d.getElementById('segutil').innerHTML = cn;
-}
 
 function addCreateLightedObjectButtons(supportedObjectTypes)
 {
@@ -2603,11 +2419,6 @@ function makeP(i) {
 		<label class="check revchkl">
 			Include brightness
 			<input type="checkbox" id="p${i}ibtgl" checked>
-			<span class="checkmark schk"></span>
-		</label>
-		<label class="check revchkl">
-			Save segment bounds
-			<input type="checkbox" id="p${i}sbtgl" checked>
 			<span class="checkmark schk"></span>
 		</label>
 	</div>
@@ -2643,73 +2454,10 @@ function tglCs(i){
 	d.getElementById(`p${i}o2`).style.display = !pss? "block" : "none";
 }
 
-function selSegEx(s)
-{
-	var obj = {"seg":[]};
-	for(i=0; i<=lSeg; i++){
-		obj.seg.push({"sel":(i==s)?true:false});
-	}
-	requestJson(obj);
-}
-
-function selSeg(s){
-	var sel = d.getElementById(`seg${s}sel`).checked;
-	var obj = {"seg": {"id": s, "sel": sel}};
-	requestJson(obj, false);
-}
-
-function setSeg(s){
-	var start = parseInt(d.getElementById(`seg${s}s`).value);
-	var stop	= parseInt(d.getElementById(`seg${s}e`).value);
-	if (stop <= start) {delSeg(s); return;};
-	var obj = {"seg": {"id": s, "start": start, "stop": stop}};
-	if (d.getElementById(`seg${s}grp`))
-	{
-		var grp = parseInt(d.getElementById(`seg${s}grp`).value);
-		var spc = parseInt(d.getElementById(`seg${s}spc`).value);
-		obj.seg.grp = grp;
-		obj.seg.spc = spc;
-	}
-	requestJson(obj);
-}
-
-function delSeg(s){
-	if (segCount < 2) {
-		showToast("You need to have multiple segments to delete one!");
-		return;
-	}
-	expanded[s] = false;
-	segCount--;
-	var obj = {"seg": {"id": s, "stop": 0}};
-	requestJson(obj, false);
-}
-
 function createLightedObject()
 {
 	var selectedObjectToCreate = d.getElementById("selectLightedObjectType");
 	var obj = {"object_action": { "action": "create_object", "object_type": selectedObjectToCreate.value}};
-	requestJson(obj);
-}
-
-function setRev(s){
-	var rev = d.getElementById(`seg${s}rev`).checked;
-	var obj = {"seg": {"id": s, "rev": rev}};
-	requestJson(obj, false);
-}
-
-function setMi(s){
-	var mi = d.getElementById(`seg${s}mi`).checked;
-	var obj = {"seg": {"id": s, "mi": mi}};
-	requestJson(obj, false);
-}
-
-function setSegPwr(s){
-	var obj = {"seg": {"id": s, "on": !powered[s]}};
-	requestJson(obj);
-}
-
-function setSegBri(s){
-	var obj = {"seg": {"id": s, "bri": parseInt(d.getElementById(`seg${s}bri`).value)}};
 	requestJson(obj);
 }
 
@@ -2797,7 +2545,6 @@ function saveP(i) {
 		obj["o"] = true;
 	} else {
 		obj["ib"] = d.getElementById(`p${i}ibtgl`).checked;
-		obj["sb"] = d.getElementById(`p${i}sbtgl`).checked;
 	}
 	obj["psave"] = pI; obj["n"] = pN;
 	var pQN = d.getElementById(`p${i}ql`).value;
@@ -2816,7 +2563,6 @@ function saveP(i) {
 		if (obj["win"]) pJson[pI]["win"] = obj["win"];
 		if (obj["ql"])  pJson[pI]["ql"] = obj["ql"];
 	}
-	populatePresets();
 	resetPUtil();
 }
 
@@ -2824,7 +2570,6 @@ function delP(i) {
 	var obj = {"pdel": i};
 	requestJson(obj);
 	delete pJson[i];
-	populatePresets();
 }
 
 function selectSlot(b) {
@@ -2949,26 +2694,6 @@ function cnfReset()
 	window.location.href = "/reset";
 }
 
-var cnfrS = false;
-function rSegs()
-{
-	var bt = d.getElementById('rsbtn');
-	if (!cnfrS)
-	{
-	bt.style.color = "#f00";
-	bt.innerHTML = "Confirm reset";
-	cnfrS = true; return;
-	}
-	cnfrS = false;
-	bt.style.color = "#fff";
-	bt.innerHTML = "Reset segments";
-	var obj = {"seg":[{"start":0,"stop":ledCount,"sel":true}]};
-	for(i=1; i<=lSeg; i++){
-		obj.seg.push({"stop":0});
-	}
-	requestJson(obj);
-}
-
 var hasUserConfirmedClear = false;
 function clearObjects()
 {
@@ -2996,19 +2721,14 @@ function clearObjects()
 
 function expand(i,a)
 {
-	if (!a) expanded[i] = !expanded[i];
-	d.getElementById('seg' +i).style.display = (expanded[i]) ? "block":"none";
-	d.getElementById('sege' +i).style.transform = (expanded[i]) ? "rotate(180deg)":"rotate(0deg)"
-	if (i > 100) { //presets
+	if (!a)
+	{
+		expanded[i] = !expanded[i];	
+	} 
+	if (i > 100)
+	{ //presets
 		var p = i-100;
 		d.getElementById(`p${p}o`).style.background = (expanded[i] || p != currentPreset)?"var(--c-2)":"var(--c-6)";
-		if (d.getElementById('seg' +i).innerHTML == "") {
-      d.getElementById('seg' +i).innerHTML = makeP(p);
-      var papi = papiVal(p);
-      d.getElementById(`p${p}api`).value = papi;
-      if (papi.indexOf("Please") == 0) d.getElementById(`p${p}cstgl`).checked = true;
-      tglCs(p);
-		}
 	}
 }
 

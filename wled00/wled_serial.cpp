@@ -90,10 +90,16 @@ void handleSerial()
         if (!realtimeOverride) setRealtimePixel(pixel++, red, green, blue, 0);
         if (--count > 0) state = AdaState::Data_Red;
         else {
-          if (!realtimeMode && bri == 0) strip.setBrightness(briLast);
+          if (!realtimeMode && bri == 0)
+          {
+            lightDisplay.setBrightness(briLast);
+          }
           realtimeLock(realtimeTimeoutMs, REALTIME_MODE_ADALIGHT);
 
-          if (!realtimeOverride) strip.show();
+          if (!realtimeOverride)
+          {
+            lightDisplay.runEffect();
+          } 
           state = AdaState::Header_A;
         }
         break;

@@ -124,7 +124,9 @@ void WLED::loop()
   handleNetworkTime();
   handleAlexa();
 
+#ifdef ENABLE_CLOCK_OVERLAY
   handleOverlays();
+#endif // ENABLE_CLOCK_OVERLAY  
   yield();
 #ifdef WLED_USE_ANALOG_LEDS
   strip.setRgbwPwm();
@@ -160,7 +162,9 @@ void WLED::loop()
     yield();
 
     if (!offMode)
-      strip.service();
+    {
+      lightDisplay.runEffect();
+    }
 #ifdef ESP8266
     else if (!noWifiSleep)
       delay(1); //required to make sure ESP enters modem sleep (see #1184)
@@ -279,7 +283,7 @@ void WLED::setup()
     sprintf(mqttClientID + 5, "%*s", 6, escapedMac.c_str() + 6);
   }
 
-  strip.service();
+  lightDisplay.runEffect();
 
 #ifndef WLED_DISABLE_OTA
   if (aOtaEnabled) {
@@ -311,13 +315,12 @@ void WLED::beginStrip()
   #endif
 
   if (ledCount > MAX_LEDS || ledCount == 0)
+  {
     ledCount = 30;
-
-  strip.init(useRGBW, ledCount, skipFirstLed);
-  strip.setBrightness(0);
-  strip.setShowCallback(handleOverlayDraw);
+  }
 
   lightDisplay.init(useRGBW, ledCount);
+  lightDisplay.setBrightness(50);
 
 #if defined(BTNPIN) && BTNPIN > -1
   pinManager.allocatePin(BTNPIN, false);
@@ -468,7 +471,8 @@ void WLED::initInterfaces()
     ArduinoOTA.begin();
 #endif
 
-  strip.service();
+  lightDisplay.runEffect();
+
   // Set up mDNS responder:
   if (strlen(cmDNS) > 0) {
   #ifndef WLED_DISABLE_OTA

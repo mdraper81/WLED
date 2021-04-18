@@ -11,7 +11,8 @@ std::initializer_list<const char*> Present::SUPPORTED_EFFECTS = {"Solid", "Unwra
 Present::Present()
     : BaseLightedObject()
 {
-    mNumberOfLEDs = 300;
+    //mNumberOfLEDs = 300;
+    mNumberOfLEDs = 5;
 }
 
 /*
@@ -39,10 +40,19 @@ std::list<const char*> Present::getSupportedEffects() const
 ** Run the currently selected effect
 ** ============================================================================
 */
-uint16_t Present::runEffect()
+bool Present::runEffect(uint32_t delta)
 {
     for (int address = mStartingAddress; address < mStartingAddress + mNumberOfLEDs; ++address)
     {
-        setPixelColor(address, 0x00FF0085);
+        if (mPoweredOn)
+        {
+            setPixelColor(address, 0x00FF0000);
+        }
+        else
+        {
+            setPixelColor(address, 0x00000000);
+        }
     }
+
+    return true;
 }

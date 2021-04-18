@@ -52,8 +52,12 @@ class LightDisplay
         void setColorOrder(uint8_t newColorOrder);
         uint8_t getColorOrder();
 
+        uint16_t getCurrentMilliamps() const { return mCurrentMilliamps; }
+
         void setCurrentPerLED(uint8_t newCurrent) { mMilliampsPerLed = newCurrent; }
         uint8_t getCurrentPerLED() const { return mMilliampsPerLed; }
+
+        uint32_t getCurrentTimestamp() const { return mCurrentTimestamp; }
 
         uint32_t getLastShowTimestamp() const { return mLastShowTimestamp; }
 
@@ -84,7 +88,7 @@ class LightDisplay
 
     // Private functions
     private:
-        void show();
+        void setBrightnessAndShow();
 
         uint32_t getGammaCorrectedColor(uint32_t color) const;
 
@@ -97,6 +101,7 @@ class LightDisplay
         // Lighted object management
         void swapLightedObjects(int firstIndex, int otherIndex);
         void resetLightedObjectAddresses();
+        void resetAllLeds();
 
         // Save/Load functionality
         void saveToFile() const;
@@ -139,6 +144,10 @@ class LightDisplay
         bool                mSupportsWhiteChannel;
         bool                mReverseModeEnabled;
         uint8_t             mRgbwMode;
+
+        // NOTE: This is not saved in lightDisplay.json because we get it from the Cfg that
+        // is setup for the application as a whole.
+        uint8_t             mColorOrder;
 
         bool                mGammaCorrectBrightness;
         bool                mGammaCorrectColor;

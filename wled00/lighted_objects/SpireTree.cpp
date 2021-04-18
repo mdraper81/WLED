@@ -11,7 +11,8 @@ std::initializer_list<const char*> SpireTree::SUPPORTED_EFFECTS = {"Solid", "Mul
 SpireTree::SpireTree()
     : BaseLightedObject()
 {
-    mNumberOfLEDs = 300;
+    //mNumberOfLEDs = 300;
+    mNumberOfLEDs = 7;
 }
 
 /*
@@ -39,10 +40,12 @@ std::list<const char*> SpireTree::getSupportedEffects() const
 ** Run the currently selected effect
 ** ============================================================================
 */
-uint16_t SpireTree::runEffect()
+bool SpireTree::runEffect(uint32_t delta)
 {
     for (int address = mStartingAddress; address < mStartingAddress + mNumberOfLEDs; ++address)
     {
-        setPixelColor(address, 0x00FF0085);
+        setPixelColor(address, 0x0000FF00);
     }
+
+    return true;
 }

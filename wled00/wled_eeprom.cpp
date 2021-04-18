@@ -115,7 +115,7 @@ void loadSettingsFromEEPROM()
   }
   receiveNotificationBrightness = EEPROM.read(250);
   fadeTransition = EEPROM.read(251);
-  strip.reverseMode = EEPROM.read(252);
+  lightDisplay.enableReverseMode(EEPROM.read(252));
   transitionDelayDefault = EEPROM.read(253) + ((EEPROM.read(254) << 8) & 0xFF00);
   transitionDelay = transitionDelayDefault;
   briMultiplier = EEPROM.read(255);
@@ -131,8 +131,8 @@ void loadSettingsFromEEPROM()
   ntpEnabled = EEPROM.read(327);
   currentTimezone = EEPROM.read(328);
   useAMPM = EEPROM.read(329);
-  strip.gammaCorrectBri = EEPROM.read(330);
-  strip.gammaCorrectCol = EEPROM.read(331);
+  lightDisplay.enableBrightnessGammaCorrection(EEPROM.read(330));
+  lightDisplay.enableColorGammaCorrection(EEPROM.read(331));
   overlayDefault = EEPROM.read(332);
   if (lastEEPROMversion < 8 && overlayDefault > 0) overlayDefault--; //overlay mode 1 (solid) was removed
 
@@ -214,9 +214,6 @@ void loadSettingsFromEEPROM()
 
   if (lastEEPROMversion > 7)
   {
-    strip.paletteFade  = EEPROM.read(374);
-    strip.paletteBlend = EEPROM.read(382);
-
     for (int i = 0; i < 8; ++i)
     {
       timerHours[i]   = EEPROM.read(2260 + i);
@@ -238,14 +235,17 @@ void loadSettingsFromEEPROM()
 
   if (lastEEPROMversion > 9)
   {
-    strip.setColorOrder(EEPROM.read(383));
+    lightDisplay.setColorOrder(EEPROM.read(383));
     irEnabled = EEPROM.read(385);
-    strip.ablMilliampsMax = EEPROM.read(387) + ((EEPROM.read(388) << 8) & 0xFF00);
-  } else if (lastEEPROMversion > 1) //ABL is off by default when updating from version older than 0.8.2
+    lightDisplay.setMaximumAllowedCurrent(EEPROM.read(387) + ((EEPROM.read(388) << 8) & 0xFF00));
+  }
+  else if (lastEEPROMversion > 1) //ABL is off by default when updating from version older than 0.8.2
   {
-    strip.ablMilliampsMax = 65000;
-  } else {
-    strip.ablMilliampsMax = ABL_MILLIAMPS_DEFAULT;
+    lightDisplay.setMaximumAllowedCurrent(65000);
+  }
+  else
+  {
+    lightDisplay.setMaximumAllowedCurrent(ABL_MILLIAMPS_DEFAULT);
   }
 
   if (lastEEPROMversion > 10)
@@ -258,12 +258,14 @@ void loadSettingsFromEEPROM()
 
   if (lastEEPROMversion > 11)
   {
-    strip.milliampsPerLed = EEPROM.read(375);
-  } else if (strip.ablMilliampsMax == 65000) //65000 indicates disabled ABL in <0.8.7
-  {
-    strip.ablMilliampsMax = ABL_MILLIAMPS_DEFAULT;
-    strip.milliampsPerLed = 0; //disable ABL
+    lightDisplay.setCurrentPerLED(EEPROM.read(375));
   }
+  else if (lightDisplay.getMaximumAllowedCurrent() == 65000) //65000 indicates disabled ABL in <0.8.7
+  {
+    lightDisplay.setMaximumAllowedCurrent(ABL_MILLIAMPS_DEFAULT);
+    lightDisplay.setCurrentPerLED(0); //disable ABL
+  }
+
   if (lastEEPROMversion > 12)
   {
     readStringFromEEPROM(990, ntpServerName, 32);
@@ -317,7 +319,7 @@ void loadSettingsFromEEPROM()
   receiveDirect = !EEPROM.read(2200);
   notifyMacro = EEPROM.read(2201);
 
-  strip.rgbwMode = EEPROM.read(2203);
+  lightDisplay.setRgbwMode(EEPROM.read(2203));
   skipFirstLed = EEPROM.read(2204);
 
   if (EEPROM.read(2210) || EEPROM.read(2211) || EEPROM.read(2212))
@@ -423,25 +425,8 @@ void deEEP() {
         segObj[F("ix")]  = EEPROM.read(i+16);
         segObj[F("pal")] = EEPROM.read(i+17);
         // MDR DEBUG: TODO - Update EEPROM to read/write the color set so it saves between sessions
-      } else {
-        WS2812FX::Segment* seg = strip.getSegments();
-        memcpy(seg, EEPROM.getDataPtr() +i+2, 240);
-        if (ver == 2) { //versions before 2004230 did not have opacity
-          for (byte j = 0; j < strip.getMaxSegments(); j++)
-          {
-            strip.getSegment(j).opacity = 255;
-            strip.getSegment(j).setOption(SEG_OPTION_ON, 1);
-          }
-        }
-        setValuesFromMainSeg();
-        serializeState(pObj, true, false, true);
-
-        strip.resetSegments();
-        setValuesFromMainSeg();
       }
     }
-
-    
     
     for (uint16_t index = 1; index <= 16; index++) { //copy macros to presets.json
       char m[65];

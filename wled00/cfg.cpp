@@ -88,14 +88,10 @@ void deserializeConfig() {
   CJSON(ledCount, hw_led[F("total")]);
   if (ledCount > MAX_LEDS) ledCount = MAX_LEDS;
 
-  CJSON(strip.ablMilliampsMax, hw_led[F("maxpwr")]); // MDR TEMP
-  CJSON(strip.milliampsPerLed, hw_led[F("ledma")]); // MDR TEMP
-  CJSON(strip.reverseMode, hw_led[F("rev")]); // MDR TEMP
-  CJSON(strip.rgbwMode, hw_led[F("rgbwm")]); // MDR TEMP
-  //lightDisplay.setMaximumAllowedCurrent(hw_led[F("maxpwr")] | lightDisplay.getMaximumAllowedCurrent()); // MDR DEBUG - TODO - double check against new JSON format
-  //lightDisplay.setCurrentPerLED(hw_led[F("ledma")] | lightDisplay.getCurrentPerLED()); // MDR DEBUG - TODO - double check against new JSON format
-  //lightDisplay.enableReverseMode(hw_led[F("rev")] | lightDisplay.isReverseModeEnabled()); // MDR DEBUG - TODO - double check against new JSON format
-  //lightDisplay.setRgbwMode(hw_led[F("rgbwm")] | lightDisplay.getRgbwMode()); // MDR DEBUG - TODO - double check against new JSON format
+  lightDisplay.setMaximumAllowedCurrent(hw_led[F("maxpwr")] | lightDisplay.getMaximumAllowedCurrent()); // MDR DEBUG - TODO - double check against new JSON format
+  lightDisplay.setCurrentPerLED(hw_led[F("ledma")] | lightDisplay.getCurrentPerLED()); // MDR DEBUG - TODO - double check against new JSON format
+  lightDisplay.enableReverseMode(hw_led[F("rev")] | lightDisplay.isReverseModeEnabled()); // MDR DEBUG - TODO - double check against new JSON format
+  lightDisplay.setRgbwMode(hw_led[F("rgbwm")] | lightDisplay.getRgbwMode()); // MDR DEBUG - TODO - double check against new JSON format
 
   JsonObject hw_led_ins_0 = hw_led[F("ins")][0];
   //bool hw_led_ins_0_en = hw_led_ins_0[F("en")]; // true
@@ -104,8 +100,7 @@ void deserializeConfig() {
 
   //int hw_led_ins_0_pin_0 = hw_led_ins_0[F("pin")][0]; // 2
 
-  strip.setColorOrder(hw_led_ins_0[F("order")]); // MDR TEMP
-  //lightDisplay.setColorOrder(hw_led_ins_0[F("order")]); // MDR DEBUG - TODO - double check against new JSON format
+  lightDisplay.setColorOrder(hw_led_ins_0[F("order")]); // MDR DEBUG - TODO - double check against new JSON format
   //bool hw_led_ins_0_rev = hw_led_ins_0[F("rev")]; // false
   skipFirstLed = hw_led_ins_0[F("skip")]; // 0
   useRGBW = (hw_led_ins_0[F("type")] == TYPE_SK6812_RGBW);
@@ -132,37 +127,31 @@ void deserializeConfig() {
 
   JsonObject light = doc[F("light")];
   CJSON(briMultiplier, light[F("scale-bri")]);
-  CJSON(strip.paletteBlend, light[F("pal-mode")]); // MDR TEMP
 
   float light_gc_bri = light[F("gc")]["bri"];
   float light_gc_col = light[F("gc")][F("col")]; // 2.8
   if (light_gc_bri > 1.5)
   {
-    strip.gammaCorrectBri = true; // MDR TEMP
-    //lightDisplay.enableBrightnessGammaCorrection(true);
+    lightDisplay.enableBrightnessGammaCorrection(true);
   }
   else if (light_gc_bri > 0.5)
   {
-    strip.gammaCorrectBri = false; // MDR TEMP
-    //lightDisplay.enableBrightnessGammaCorrection(false);
+    lightDisplay.enableBrightnessGammaCorrection(false);
   }
 
   if (light_gc_col > 1.5)
   {
-    strip.gammaCorrectCol = true; // MDR TEMP
-    //lightDisplay.enableColorGammaCorrection(true);
+    lightDisplay.enableColorGammaCorrection(true);
   }
   else if (light_gc_col > 0.5)
   {
-    strip.gammaCorrectCol = false; // MDR TEMP
-    //lightDisplay.enableColorGammaCorrection(false);
+    lightDisplay.enableColorGammaCorrection(false);
   }
 
   JsonObject light_tr = light[F("tr")];
   CJSON(fadeTransition, light_tr[F("mode")]);
   int tdd = light_tr[F("dur")] | -1;
   if (tdd >= 0) transitionDelayDefault = tdd * 100;
-  CJSON(strip.paletteFade, light_tr[F("pal")]); // MDR TEMP
 
   JsonObject light_nl = light["nl"];
   CJSON(nightlightMode, light_nl[F("mode")]);
@@ -404,14 +393,10 @@ void serializeConfig() {
 
   JsonObject hw_led = hw.createNestedObject("led");
   hw_led[F("total")] = ledCount;
-  hw_led[F("maxpwr")] = strip.ablMilliampsMax; // MDR TEMP
-  hw_led[F("ledma")] = strip.milliampsPerLed; // MDR TEMP
-  hw_led[F("rev")] = strip.reverseMode; // MDR TEMP
-  hw_led[F("rgbwm")] = strip.rgbwMode; // MDR TEMP
-  //hw_led[F("maxpwr")] = lightDisplay.getMaximumAllowedCurrent(); // MDR DEBUG - TODO - Check against new JSON format
-  //hw_led[F("ledma")] = lightDisplay.getCurrentPerLED(); // MDR DEBUG - TODO - Check against new JSON format
-  //hw_led[F("rev")] = lightDisplay.isReverseModeEnabled(); // MDR DEBUG - TODO - Check against new JSON format
-  //hw_led[F("rgbwm")] = lightDisplay.getRgbwMode(); // MDR DEBUG - TODO - Check against new JSON format
+  hw_led[F("maxpwr")] = lightDisplay.getMaximumAllowedCurrent(); // MDR DEBUG - TODO - Check against new JSON format
+  hw_led[F("ledma")] = lightDisplay.getCurrentPerLED(); // MDR DEBUG - TODO - Check against new JSON format
+  hw_led[F("rev")] = lightDisplay.isReverseModeEnabled(); // MDR DEBUG - TODO - Check against new JSON format
+  hw_led[F("rgbwm")] = lightDisplay.getRgbwMode(); // MDR DEBUG - TODO - Check against new JSON format
 
   JsonArray hw_led_ins = hw_led.createNestedArray("ins");
 
@@ -424,8 +409,7 @@ void serializeConfig() {
   #ifdef DATAPIN
   hw_led_ins_0_pin.add(DATAPIN);
   #endif
-  hw_led_ins_0[F("order")] = strip.getColorOrder(); // MDR TEMP
-  // hw_led_ins_0[F("order")] = lightDisplay.getColorOrder();  // MDR DEBUG - TODO - Check against new JSON format
+  hw_led_ins_0[F("order")] = lightDisplay.getColorOrder();  // MDR DEBUG - TODO - Check against new JSON format
   hw_led_ins_0[F("rev")] = false;
   hw_led_ins_0[F("skip")] = skipFirstLed ? 1 : 0;
 
@@ -483,18 +467,14 @@ void serializeConfig() {
 
   JsonObject light = doc.createNestedObject("light");
   light[F("scale-bri")] = briMultiplier;
-  light[F("pal-mode")] = strip.paletteBlend; // MDR TEMP
 
   JsonObject light_gc = light.createNestedObject("gc");
-  light_gc["bri"] = (strip.gammaCorrectBri) ? 2.8 : 1.0;  // MDR TEMP
-  light_gc[F("col")] = (strip.gammaCorrectCol) ? 2.8 : 1.0; // MDR TEMP
-  //light_gc["bri"] = (lightDisplay.isBrightnessGammaCorrectionEnabled()) ? 2.8 : 1.0; // MDR DEBUG - TODO - Check against new JSON format
-  //light_gc[F("col")] = (lightDisplay.isColorGammaCorrectionEnabled()) ? 2.8 : 1.0;  // MDR DEBUG - TODO - Check against new JSON format
+  light_gc["bri"] = (lightDisplay.isBrightnessGammaCorrectionEnabled()) ? 2.8 : 1.0; // MDR DEBUG - TODO - Check against new JSON format
+  light_gc[F("col")] = (lightDisplay.isColorGammaCorrectionEnabled()) ? 2.8 : 1.0;  // MDR DEBUG - TODO - Check against new JSON format
 
   JsonObject light_tr = light.createNestedObject("tr");
   light_tr[F("mode")] = fadeTransition;
   light_tr[F("dur")] = transitionDelayDefault / 100;
-  light_tr[F("pal")] = strip.paletteFade; // MDR TEMP
 
   JsonObject light_nl = light.createNestedObject("nl");
   light_nl[F("mode")] = nightlightMode;

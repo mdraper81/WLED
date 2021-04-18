@@ -48,14 +48,22 @@ void notify(byte callMode, bool followUp)
   udpOut[18] = (transitionDelay >> 8) & 0xFF;
   udpOut[19] = effectPalette;
   // MDR DEBUG - TODO Handle notification for color set
+#ifdef ENABLE_UDP // MDR TEMP - removing portions of the UDP functionality for now
   uint32_t colTer = strip.getSegment(strip.getMainSegmentId()).colors[2];
+#else
+  uint32_t colTer = 0;
+#endif // ENABLE_UDP
   udpOut[20] = (colTer >> 16) & 0xFF;
   udpOut[21] = (colTer >>  8) & 0xFF;
   udpOut[22] = (colTer >>  0) & 0xFF;
   udpOut[23] = (colTer >> 24) & 0xFF;
   
   udpOut[24] = followUp;
+#ifdef ENABLE_UDP // MDR TEMP - removing portions of the UDP functionality for now  
   uint32_t t = millis() + strip.timebase;
+#else
+  uint32_t t = millis();
+#endif // ENABLE_UDP
   udpOut[25] = (t >> 24) & 0xFF;
   udpOut[26] = (t >> 16) & 0xFF;
   udpOut[27] = (t >>  8) & 0xFF;
@@ -75,6 +83,7 @@ void notify(byte callMode, bool followUp)
 
 void realtimeLock(uint32_t timeoutMs, byte md)
 {
+#ifdef ENABLE_UDP // MDR TEMP - removing portions of the UDP functionality for now  
   if (!realtimeMode && !realtimeOverride){
     for (uint16_t i = 0; i < ledCount; i++)
     {
@@ -86,8 +95,15 @@ void realtimeLock(uint32_t timeoutMs, byte md)
   if (timeoutMs == 255001 || timeoutMs == 65000) realtimeTimeout = UINT32_MAX;
   realtimeMode = md;
 
-  if (arlsForceMaxBri && !realtimeOverride) strip.setBrightness(scaledBri(255));
-  if (md == REALTIME_MODE_GENERIC) strip.show();
+  if (arlsForceMaxBri && !realtimeOverride)
+  {
+    strip.setBrightness(scaledBri(255));
+  } 
+  if (md == REALTIME_MODE_GENERIC)
+  {
+    strip.show();
+  }
+#endif // ENABLE_UDP
 }
 
 
@@ -103,6 +119,7 @@ void sendTPM2Ack() {
 
 void handleNotifications()
 {
+#ifdef ENABLE_UDP // MDR TEMP - removing portions of the UDP functionality for now  
   //send second notification if enabled
   if(udpConnected && notificationTwoRequired && millis()-notificationSentTime > 250){
     notify(notificationSentCallMode,true);
@@ -335,11 +352,13 @@ void handleNotifications()
     JsonObject root = jsonBuffer.as<JsonObject>();
     if (!error && !root.isNull()) deserializeState(root);
   }
+#endif // ENABLE_UDP
 }
 
 
 void setRealtimePixel(uint16_t i, byte r, byte g, byte b, byte w)
 {
+#ifdef ENABLE_UDP // MDR TEMP - removing portions of the UDP functionality for now  
   uint16_t pix = i + arlsOffset;
   if (pix < ledCount)
   {
@@ -350,4 +369,5 @@ void setRealtimePixel(uint16_t i, byte r, byte g, byte b, byte w)
       strip.setPixelColor(pix, r, g, b, w);
     }
   }
+#endif // ENABLE_UDP
 }

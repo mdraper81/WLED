@@ -6,7 +6,7 @@
 
 void _setRandomColor(bool _sec,bool fromButton)
 {
-  lastRandomIndex = strip.get_random_wheel_index(lastRandomIndex);
+  lastRandomIndex = 0; // random color is disabled for now
   if (_sec){
     colorHStoRGB(lastRandomIndex*256,255,colSec);
   } else {
@@ -78,27 +78,33 @@ void handleSettingsSet(AsyncWebServerRequest *request, byte subPage)
     if (ledCount > MAX_LEDS_DMA) ledCount = MAX_LEDS_DMA; //DMA method uses too much ram
     #endif
     #endif
-    strip.ablMilliampsMax = request->arg(F("MA")).toInt();
-    strip.milliampsPerLed = request->arg(F("LA")).toInt();
+    lightDisplay.setMaximumAllowedCurrent(request->arg(F("MA")).toInt());
+    lightDisplay.setCurrentPerLED(request->arg(F("LA")).toInt());
     
     useRGBW = request->hasArg(F("EW"));
-    strip.setColorOrder(request->arg(F("CO")).toInt());
-    strip.rgbwMode = request->arg(F("AW")).toInt();
+    lightDisplay.setColorOrder(request->arg(F("CO")).toInt());
+    lightDisplay.setRgbwMode(request->arg(F("AW")).toInt());
 
     briS = request->arg(F("CA")).toInt();
 
     saveCurrPresetCycConf = request->hasArg(F("PC"));
     turnOnAtBoot = request->hasArg(F("BO"));
     t = request->arg(F("BP")).toInt();
-    if (t <= 25) bootPreset = t;
-    strip.gammaCorrectBri = request->hasArg(F("GB"));
-    strip.gammaCorrectCol = request->hasArg(F("GC"));
+    if (t <= 25)
+    {
+      bootPreset = t;
+    }
+    lightDisplay.enableBrightnessGammaCorrection(request->hasArg(F("GB")));
+    lightDisplay.enableColorGammaCorrection(request->hasArg(F("GC")));
+
 
     fadeTransition = request->hasArg(F("TF"));
     t = request->arg(F("TD")).toInt();
-    if (t > 0) transitionDelay = t;
+    if (t > 0)
+    {
+      transitionDelay = t;
+    }
     transitionDelayDefault = t;
-    strip.paletteFade = request->hasArg(F("PF"));
 
     nightlightTargetBri = request->arg(F("TB")).toInt();
     t = request->arg(F("TL")).toInt();
@@ -107,11 +113,13 @@ void handleSettingsSet(AsyncWebServerRequest *request, byte subPage)
     nightlightMode = request->arg(F("TW")).toInt();
 
     t = request->arg(F("PB")).toInt();
-    if (t >= 0 && t < 4) strip.paletteBlend = t;
-    strip.reverseMode = request->hasArg(F("RV"));
+    lightDisplay.enableReverseMode(request->hasArg(F("RV")));
     skipFirstLed = request->hasArg(F("SL"));
     t = request->arg(F("BF")).toInt();
-    if (t > 0) briMultiplier = t;
+    if (t > 0)
+    {
+      briMultiplier = t;
+    }
   }
 
   //UI
@@ -322,8 +330,9 @@ void handleSettingsSet(AsyncWebServerRequest *request, byte subPage)
   
   #endif
   if (subPage != 6 || !doReboot) serializeConfig(); //do not save if factory reset
-  if (subPage == 2) {
-    strip.init(useRGBW,ledCount,skipFirstLed);
+  if (subPage == 2) 
+  {
+    lightDisplay.init(useRGBW, ledCount);
   }
   if (subPage == 4) alexaInit();
 }
@@ -376,62 +385,11 @@ bool handleSet(AsyncWebServerRequest *request, const String& req, bool apply)
   DEBUG_PRINT(F("API req: "));
   DEBUG_PRINTLN(req);
 
-  strip.applyToAllSelected = true;
+#ifdef ENABLE_SET_EFFECTS // MDR TEMP - removing set effects functionality
+  strip.applyToAllSelected = false;
+#endif // ENABLE_SET_EFFECTS
 
-  //segment select (sets main segment)
-  byte prevMain = strip.getMainSegmentId();
-  pos = req.indexOf(F("SM="));
-  if (pos > 0) {
-    strip.mainSegment = getNumVal(&req, pos);
-  }
-  byte main = strip.getMainSegmentId();
-  if (main != prevMain) setValuesFromMainSeg();
-
-  pos = req.indexOf(F("SS="));
-  if (pos > 0) {
-    byte t = getNumVal(&req, pos);
-    if (t < strip.getMaxSegments()) main = t;
-  }
-
-  WS2812FX::Segment& mainseg = strip.getSegment(main);
-  pos = req.indexOf(F("SV=")); //segment selected
-  if (pos > 0) {
-    byte t = getNumVal(&req, pos);
-    if (t == 2) {
-      for (uint8_t i = 0; i < strip.getMaxSegments(); i++)
-      {
-        strip.getSegment(i).setOption(SEG_OPTION_SELECTED, 0);
-      }
-    }
-    mainseg.setOption(SEG_OPTION_SELECTED, t);
-  }
-
-  uint16_t startI = mainseg.start;
-  uint16_t stopI = mainseg.stop;
-  uint8_t grpI = mainseg.grouping;
-  uint16_t spcI = mainseg.spacing;
-  pos = req.indexOf(F("&S=")); //segment start
-  if (pos > 0) {
-    startI = getNumVal(&req, pos);
-  }
-  pos = req.indexOf(F("S2=")); //segment stop
-  if (pos > 0) {
-    stopI = getNumVal(&req, pos);
-  }
-  pos = req.indexOf(F("GP=")); //segment grouping
-  if (pos > 0) {
-    grpI = getNumVal(&req, pos);
-    if (grpI == 0) grpI = 1;
-  }
-  pos = req.indexOf(F("SP=")); //segment spacing
-  if (pos > 0) {
-    spcI = getNumVal(&req, pos);
-  }
-  strip.setSegment(main, startI, stopI, grpI, spcI);
-
-  main = strip.getMainSegmentId();
-
-   //set presets
+  //set presets
   pos = req.indexOf(F("P1=")); //sets first preset for cycle
   if (pos > 0) presetCycleMin = getNumVal(&req, pos);
 
@@ -527,7 +485,6 @@ bool handleSet(AsyncWebServerRequest *request, const String& req, bool apply)
   if (pos > 0) {
     byte t[4];
     colorFromDecOrHexString(t, (char*)req.substring(pos + 3).c_str());
-    strip.setColor(2, t[0], t[1], t[2], t[3]);
   }
 
   //set to random hue SR=0->1st SR=1->2nd
@@ -548,11 +505,6 @@ bool handleSet(AsyncWebServerRequest *request, const String& req, bool apply)
     }
   }
 
-  //set effect parameters
-  if (updateVal(&req, "FX=", &effectCurrent, 0, strip.getModeCount()-1)) presetCyclingEnabled = false;
-  updateVal(&req, "SX=", &effectSpeed);
-  updateVal(&req, "IX=", &effectIntensity);
-  updateVal(&req, "FP=", &effectPalette, 0, strip.getPaletteCount()-1);
   // MDR DEBUG - TODO support macros to set color set here
 
   //set advanced overlay
@@ -641,24 +593,6 @@ bool handleSet(AsyncWebServerRequest *request, const String& req, bool apply)
   pos = req.indexOf(F("TT="));
   if (pos > 0) transitionDelay = getNumVal(&req, pos);
 
-  //Segment reverse
-  pos = req.indexOf(F("RV="));
-  if (pos > 0) strip.getSegment(main).setOption(SEG_OPTION_REVERSED, req.charAt(pos+3) != '0');
-
-  //Segment reverse
-  pos = req.indexOf(F("MI="));
-  if (pos > 0) strip.getSegment(main).setOption(SEG_OPTION_MIRROR, req.charAt(pos+3) != '0');
-
-  //Segment brightness/opacity
-  pos = req.indexOf(F("SB="));
-  if (pos > 0) {
-    byte segbri = getNumVal(&req, pos);
-    strip.getSegment(main).setOption(SEG_OPTION_ON, segbri);
-    if (segbri) {
-      strip.getSegment(main).opacity = segbri;
-    }
-  }
-
   //set time (unix timestamp)
   pos = req.indexOf(F("ST="));
   if (pos > 0) {
@@ -687,12 +621,6 @@ bool handleSet(AsyncWebServerRequest *request, const String& req, bool apply)
   pos = req.indexOf(F("NM="));
   if (pos > 0) countdownMode = (req.charAt(pos+3) != '0');
   
-  pos = req.indexOf(F("NX=")); //sets digits to code
-  if (pos > 0) {
-    strlcpy(cronixieDisplay, req.substring(pos + 3, pos + 9).c_str(), 6);
-    setCronixie();
-  }
-
   pos = req.indexOf(F("NB="));
   if (pos > 0) //sets backlight
   {

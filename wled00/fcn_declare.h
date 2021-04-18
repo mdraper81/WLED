@@ -96,9 +96,9 @@ void handleIR();
 #include "src/dependencies/json/AsyncJson-v6.h"
 #include "FX.h"
 
-void deserializeSegment(JsonObject elem, byte it);
+//void deserializeSegment(JsonObject elem, byte it);
 bool deserializeState(JsonObject root);
-void serializeSegment(JsonObject& root, WS2812FX::Segment& seg, byte id, bool forPreset = false, bool segmentBounds = true);
+//void serializeSegment(JsonObject& root, WS2812FX::Segment& seg, byte id, bool forPreset = false, bool segmentBounds = true);
 void serializeState(JsonObject root, bool forPreset = false, bool includeBri = true, bool segmentBounds = true);
 void serializeInfo(JsonObject root);
 void serveJson(AsyncWebServerRequest* request);

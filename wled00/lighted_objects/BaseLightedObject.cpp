@@ -324,17 +324,24 @@ void BaseLightedObject::setPixelColor(uint16_t address, byte red, byte green, by
     }
 }
 
-// MDR DEBUG TODO - 
+// MDR DEBUG TODO - Global brightness is broken, hardcoding to 50
+//                  Power on/off is not working - we need to set color to black to turn off.  
+//                        - Implement a base function to run effect to handle power off globally
+//                        - Save value of powered on to lightDisplay.json
+//                  Relative brightness is not working - probably doesn't make sense, remove this
+//                  Add hardcoded colorsets
+//                  Apply color set onto a lighted object
+//                  Allow color set offset adjustment
+//                  Implement some basic effects
+// MDR DEBUG TODO - Investigate overlap between cfg.cpp settings and lightDisplay.cpp settings
 //                  see https://www.toptal.com/designers/htmlarrows/arrows/)
 //                  Add numeric slider control
 //                  Add effect intensity & speed controllers to snowflake
-//                  Apply color set onto a lighted object
-//                  Allow color set offset adjustment
 //                  Create Scene objects
 //                  Move scenes up/down
 //                  Remove scenes
 //                  Save/Load Scenes
-// MDR DEBUG TODO - Test that we can create a strand and set the solid color and that it is purple
-// MDR DEBUG TODO - Replace "strip" global variable with light display.  May require adding functionality to LightDisplay
+//                  Use a json to load color sets (create it with default sets if it doesn't exist)
+//                  Implement functionality to edit color sets
 // MDR DEBUG TODO - update NodeMCU LED to blink instead of remaining on (seems to be a problem with NeoPixelWrapper)
 

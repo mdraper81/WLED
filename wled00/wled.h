@@ -33,7 +33,7 @@
 #endif
 #define WLED_ENABLE_ADALIGHT       // saves 500b only
 //#define WLED_ENABLE_DMX          // uses 3.5kb (use LEDPIN other than 2)
-#define WLED_ENABLE_LOXONE         // uses 1.2kb
+//#define WLED_ENABLE_LOXONE       // uses 1.2kb
 #ifndef WLED_DISABLE_WEBSOCKETS
   #define WLED_ENABLE_WEBSOCKETS
 #endif
@@ -528,8 +528,17 @@ WLED_GLOBAL ESPAsyncE131 e131 _INIT_N(((handleE131Packet)));
 WLED_GLOBAL bool e131NewData _INIT(false);
 
 // led fx library object
-WLED_GLOBAL WS2812FX strip _INIT(WS2812FX());
+//WLED_GLOBAL WS2812FX strip _INIT(WS2812FX());
 WLED_GLOBAL LightDisplay lightDisplay _INIT(LightDisplay());
+// MDR DEBUG: TODO - These are the defines that block existing functionality
+//    #ifdef ENABLE_CLOCK_OVERLAY
+//    #ifdef ENABLE_HTTP_API // MDR TEMP - disabling HTTP API for now since it is very much based on using a strip with segments
+//    #ifdef ENABLE_NIGHTLIGHT // MDR TEMP - removing nightlight functionality        
+//    #ifdef ENABLE_SET_ALL_LEDS // MDR TEMP - removing set all LEDs functionality  
+//    #ifdef ENABLE_SET_EFFECTS // MDR TEMP - removing set effects functionality
+//    #ifdef ENABLE_TRANSITIONS // MDR TEMP - removing transitions functionality        
+//    #ifdef ENABLE_UDP // MDR TEMP - removing portions of the UDP functionality for now
+//    #ifdef WLED_ENABLE_LOXONE (THIS ONE EXISTED BUT WAS COMMENTED OUT)
 
 // Usermod manager
 WLED_GLOBAL UsermodManager usermods _INIT(UsermodManager());

@@ -3,6 +3,8 @@
 const char* LightStrand::LIGHTED_OBJECT_TYPE_NAME = "Strand";
 std::initializer_list<const char*> LightStrand::SUPPORTED_EFFECTS = {"Solid", "Multi-Color Solid", "Chase"};
 
+const char* LightStrand::STRAND_LENGTH_KEY = "strandLength";
+
 /*
 ** ============================================================================
 ** Constructor
@@ -11,7 +13,7 @@ std::initializer_list<const char*> LightStrand::SUPPORTED_EFFECTS = {"Solid", "M
 LightStrand::LightStrand()
     : BaseLightedObject()
 {
-    mNumberOfLEDs = 50;
+    mNumericValues[STRAND_LENGTH_KEY] = 50;
 }
 
 /*
@@ -39,12 +41,33 @@ std::list<const char*> LightStrand::getSupportedEffects() const
 ** Run the currently selected effect
 ** ============================================================================
 */
-uint16_t LightStrand::runEffect()
+bool LightStrand::runEffect(uint32_t delta)
 {
     for (int address = mStartingAddress; address < mStartingAddress + mNumberOfLEDs; ++address)
     {
-        setPixelColor(address, 0x00FF0085);
+        if (!mPoweredOn)
+        {
+            setPixelColor(address, 0x00000000);
+        }
+        else if (address % 4 == 0)
+        {
+            setPixelColor(address, 0x00FF0000); // RED
+        }
+        else if (address % 4 == 1)
+        {
+            setPixelColor(address, 0x0003D000); // GREEN
+        }
+        else if (address % 4 == 2)
+        {
+            setPixelColor(address, 0x000200FF); // BLUE
+        }
+        else
+        {
+            setPixelColor(address, 0x00FF0085); // PURPLE
+        }
     }
+
+    return true;
 }
 
 /*
@@ -56,5 +79,15 @@ uint16_t LightStrand::runEffect()
 void LightStrand::serializeSepecializedData(JsonObject& currentState) const
 {
     JsonArray uiElementsArray = currentState[UI_ELEMENTS_ARRAY_ELEMENT];
-    appendNumericElement(uiElementsArray, "Strand Length", 0, 1000, 50, "numLights"); // MDR DEBUG - TODO - Get an appropriate max value
+    appendNumericElement(uiElementsArray, "Strand Length", 0, 1000, mNumericValues.at(STRAND_LENGTH_KEY), STRAND_LENGTH_KEY);
+}
+
+/*
+** ============================================================================
+** Update the total number of LEDs for this object
+** ============================================================================
+*/
+void LightStrand::onParametersUpdated()
+{
+    mNumberOfLEDs = mNumericValues[STRAND_LENGTH_KEY];
 }

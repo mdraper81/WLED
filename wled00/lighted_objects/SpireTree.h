@@ -25,7 +25,7 @@ class SpireTree : public BaseLightedObject
         virtual std::list<const char*> getSupportedEffects() const;
 
         /// This is called to run another 'frame' of the current effect
-        virtual uint16_t runEffect();
+        virtual bool runEffect(uint32_t delta);
 
     // BaseLightedObject overrides
     protected:

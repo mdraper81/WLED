@@ -3,7 +3,7 @@
 /*
  * Used to draw clock overlays over the strip
  */
- 
+#ifdef ENABLE_CLOCK_OVERLAY
 void initCronixie()
 {
   if (overlayCurrent == 3 && !cronixieInit)
@@ -374,3 +374,5 @@ void setCronixie() {}
 void _overlayCronixie() {}
 void _drawOverlayCronixie() {}
 #endif
+
+#endif // ENABLE_CLOCK_OVERLAY

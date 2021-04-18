@@ -51,9 +51,12 @@ void XML_response(AsyncWebServerRequest *request, char* dest)
   oappend(SET_F("</ix><fp>"));
   oappendi(effectPalette);
   oappend(SET_F("</fp><wv>"));
-  if (strip.rgbwMode) {
+  if (lightDisplay.getRgbwMode())
+  {
    oappendi(col[3]);
-  } else {
+  }
+  else
+  {
    oappend("-1");
   }
   oappend(SET_F("</wv><ws>"));
@@ -69,7 +72,7 @@ void XML_response(AsyncWebServerRequest *request, char* dest)
     oappend(SET_F(" (live)"));
   }
   oappend(SET_F("</ds><ss>"));
-  oappendi(strip.getMainSegmentId());
+  oappendi(0);
   oappend(SET_F("</ss></vs>"));
   if (request != nullptr) request->send(200, "text/xml", obuf);
 }
@@ -256,35 +259,34 @@ void getSettingsJS(byte subPage, char* dest)
     #endif
     #endif
     sappend('v',SET_F("LC"),ledCount);
-    sappend('v',SET_F("MA"),strip.ablMilliampsMax);
-    sappend('v',SET_F("LA"),strip.milliampsPerLed);
-    if (strip.currentMilliamps)
+    sappend('v',SET_F("MA"),lightDisplay.getMaximumAllowedCurrent());
+    sappend('v',SET_F("LA"),lightDisplay.getCurrentPerLED());
+    if (lightDisplay.getCurrentMilliamps())
     {
       sappends('m',SET_F("(\"pow\")[0]"),"");
       olen -= 2; //delete ";
-      oappendi(strip.currentMilliamps);
+//      oappendi(strip.currentMilliamps);
+      oappendi(lightDisplay.getCurrentMilliamps());
       oappend(SET_F("mA\";"));
     }
 
     sappend('v',SET_F("CA"),briS);
     sappend('c',SET_F("EW"),useRGBW);
-    sappend('i',SET_F("CO"),strip.getColorOrder());
-    sappend('v',SET_F("AW"),strip.rgbwMode);
+    sappend('i',SET_F("CO"),lightDisplay.getColorOrder());
+    sappend('v',SET_F("AW"),lightDisplay.getRgbwMode());
 
     sappend('c',SET_F("BO"),turnOnAtBoot);
     sappend('v',SET_F("BP"),bootPreset);
 
-    sappend('c',SET_F("GB"),strip.gammaCorrectBri);
-    sappend('c',SET_F("GC"),strip.gammaCorrectCol);
+    sappend('c',SET_F("GB"),lightDisplay.isBrightnessGammaCorrectionEnabled());
+    sappend('c',SET_F("GC"),lightDisplay.isColorGammaCorrectionEnabled());
     sappend('c',SET_F("TF"),fadeTransition);
     sappend('v',SET_F("TD"),transitionDelayDefault);
-    sappend('c',SET_F("PF"),strip.paletteFade);
     sappend('v',SET_F("BF"),briMultiplier);
     sappend('v',SET_F("TB"),nightlightTargetBri);
     sappend('v',SET_F("TL"),nightlightDelayMinsDefault);
     sappend('v',SET_F("TW"),nightlightMode);
-    sappend('i',SET_F("PB"),strip.paletteBlend);
-    sappend('c',SET_F("RV"),strip.reverseMode);
+    sappend('c',SET_F("RV"),lightDisplay.isReverseModeEnabled());
     sappend('c',SET_F("SL"),skipFirstLed);
   }
 

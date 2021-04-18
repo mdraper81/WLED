@@ -49,12 +49,14 @@ std::list<const char*> SnowFlake::getSupportedEffects() const
 ** Run the currently selected effect
 ** ============================================================================
 */
-uint16_t SnowFlake::runEffect()
+bool SnowFlake::runEffect(uint32_t delta)
 {
     for (int address = mStartingAddress; address < mStartingAddress + mNumberOfLEDs; ++address)
     {
-        setPixelColor(address, 0x00FF0085);
+        setPixelColor(address, 0x000000FF);
     }
+
+    return true;
 }
 
 /*
