@@ -17,9 +17,9 @@ const char* BaseLightedObject::UI_ELEMENTS_ARRAY_ELEMENT = "UIElements";
 */
 BaseLightedObject::BaseLightedObject()
     : mPixelWrapper( nullptr )
+    , mTotalTimeRunning( 0 )
     , mStartingAddress( 0 )
     , mNumberOfLEDs( 50 )
-    , mBrightnessPercentage( 100 )
     , mPoweredOn( true )
 {
     mDropDownSelections[EFFECT_KEY] = 0;
@@ -36,27 +36,6 @@ BaseLightedObject::~BaseLightedObject()
 
 /*
 ** ============================================================================
-** Sets the brightness percentage [0, 100] for this lighted object
-** ============================================================================
-*/
-void BaseLightedObject::setBrightnessPercentage(int8_t newPercentage)
-{
-    // Clamp the new percentage to a valid range
-    if (newPercentage < 0)
-    {
-        newPercentage = 0;
-    } 
-    else if (newPercentage > 100)
-    {
-        newPercentage = 100;
-    }
-
-    // Apply the new percentage
-    mBrightnessPercentage = newPercentage;
-} 
-
-/*
-** ============================================================================
 ** Returns a list of supported effects for this lighted object
 ** ============================================================================
 */
@@ -64,6 +43,30 @@ std::list<const char*> BaseLightedObject::getSupportedEffects() const
 {
     std::list<const char*> supportedEffects(SUPPORTED_EFFECTS);
     return supportedEffects;
+}
+
+/*
+** ============================================================================
+** Updates the color for every pixel for this object to the value that it should
+** have for this 'frame'.  Note that this handles deciding if the pixels should
+** be updated by the specialized effect function or turned off.
+**
+**  param delta - the number of milliseconds since the last update
+** ============================================================================
+*/
+bool BaseLightedObject::runEffect(uint32_t delta)
+{
+    mTotalTimeRunning += delta;
+
+    if (mPoweredOn)
+    {
+        return runSpecializedEffect();
+    }
+    else
+    {
+        turnOffPixelsInRange(mStartingAddress, mNumberOfLEDs);
+        return true;
+    }
 }
 
 /*
@@ -96,7 +99,6 @@ void BaseLightedObject::update(const char* userInputValues)
 void BaseLightedObject::deserializeAndApplyStateFromJson(JsonObject newState)
 {
     // Deserialize state variables
-    POPULATE_FROM_JSON(mBrightnessPercentage, newState[BRIGHTNESS_PCT_ELEMENT]);
     POPULATE_FROM_JSON(mPoweredOn, newState[POWERED_ON_ELEMENT]);
     
     // Deserialize all UI Elements
@@ -122,7 +124,6 @@ void BaseLightedObject::serializeCurrentStateToJson(JsonObject& currentState) co
 {
     // Serialize state variables
     currentState[TYPE_ELEMENT] = String(getObjectType().c_str());
-    currentState[BRIGHTNESS_PCT_ELEMENT] = mBrightnessPercentage;
     currentState[POWERED_ON_ELEMENT] = mPoweredOn;
 
     // Serialize all UI Elements
@@ -146,6 +147,31 @@ void BaseLightedObject::setPixelColor(uint16_t address, uint32_t color)
     byte blue   =  color;
     setPixelColor(address, red, green, blue, white);
 }
+
+/*
+** ============================================================================
+** Set the pixels in the given address range to the given color
+** ============================================================================
+*/
+void BaseLightedObject::setPixelColorForRange(uint16_t startingAddress, uint16_t numPixels, uint32_t color)
+{
+    for (int address = startingAddress; address < startingAddress + numPixels; ++address)
+    {
+        setPixelColor(address, color);
+    }
+}
+
+/*
+** ============================================================================
+** Turn off the pixels in the given address range
+** ============================================================================
+*/
+void BaseLightedObject::turnOffPixelsInRange(uint16_t startingAddress, uint16_t numPixels)
+{
+    // Set all pixels in this range to black to turn them off
+    setPixelColorForRange(startingAddress, numPixels, 0x00000000);
+}
+
 
 /*
 ** ============================================================================
@@ -300,7 +326,6 @@ void BaseLightedObject::appendTitleElement(JsonArray& uiElementsArray, const cha
     JsonObject stringElement = uiElementsArray.createNestedObject();
     stringElement["elementType"] = "title";
     stringElement["value"] = String(newUIString);
-    stringElement["brightnessPercentage"] = mBrightnessPercentage;
     stringElement["poweredOn"] = mPoweredOn;
 }
 
@@ -324,14 +349,11 @@ void BaseLightedObject::setPixelColor(uint16_t address, byte red, byte green, by
     }
 }
 
-// MDR DEBUG TODO - Global brightness is broken, hardcoding to 50
-//                  Power on/off is not working - we need to set color to black to turn off.  
-//                        - Implement a base function to run effect to handle power off globally
-//                        - Save value of powered on to lightDisplay.json
-//                  Relative brightness is not working - probably doesn't make sense, remove this
-//                  Add hardcoded colorsets
+// MDR DEBUG TODO - Add hardcoded colorsets
 //                  Apply color set onto a lighted object
 //                  Allow color set offset adjustment
+//                  Bug: Adjust total number of leds in display and then try to turn leds on/off.  The display is in a messed up state, probably need to clear all lighted objects when reloading.
+//                  Bug: After clearing all objects I have LEDs still on, maybe need to turn the LEDs off before clearing the object.
 //                  Implement some basic effects
 // MDR DEBUG TODO - Investigate overlap between cfg.cpp settings and lightDisplay.cpp settings
 //                  see https://www.toptal.com/designers/htmlarrows/arrows/)
@@ -344,4 +366,4 @@ void BaseLightedObject::setPixelColor(uint16_t address, byte red, byte green, by
 //                  Use a json to load color sets (create it with default sets if it doesn't exist)
 //                  Implement functionality to edit color sets
 // MDR DEBUG TODO - update NodeMCU LED to blink instead of remaining on (seems to be a problem with NeoPixelWrapper)
-
+// MDR DEBUG TODO - clean up bri, briT, briLast and the stuff related to the night dimming mode

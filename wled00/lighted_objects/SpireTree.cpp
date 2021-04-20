@@ -40,7 +40,7 @@ std::list<const char*> SpireTree::getSupportedEffects() const
 ** Run the currently selected effect
 ** ============================================================================
 */
-bool SpireTree::runEffect(uint32_t delta)
+bool SpireTree::runSpecializedEffect()
 {
     for (int address = mStartingAddress; address < mStartingAddress + mNumberOfLEDs; ++address)
     {

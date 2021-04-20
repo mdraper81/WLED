@@ -46,21 +46,6 @@ std::list<const char*> SnowFlake::getSupportedEffects() const
 
 /*
 ** ============================================================================
-** Run the currently selected effect
-** ============================================================================
-*/
-bool SnowFlake::runEffect(uint32_t delta)
-{
-    for (int address = mStartingAddress; address < mStartingAddress + mNumberOfLEDs; ++address)
-    {
-        setPixelColor(address, 0x000000FF);
-    }
-
-    return true;
-}
-
-/*
-** ============================================================================
 ** Populate the given currentState JSON object with the current state of this 
 ** lighted object.  This provides the current state to the web
 ** ============================================================================
@@ -77,6 +62,21 @@ void SnowFlake::serializeSepecializedData(JsonObject& currentState) const
 void SnowFlake::onParametersUpdated()
 {
     updateTotalNumberOfLeds();
+}
+
+/*
+** ============================================================================
+** Run the currently selected effect
+** ============================================================================
+*/
+bool SnowFlake::runSpecializedEffect()
+{
+    for (int address = mStartingAddress; address < mStartingAddress + mNumberOfLEDs; ++address)
+    {
+        setPixelColor(address, 0x000000FF);
+    }
+
+    return true;
 }
 
 /*

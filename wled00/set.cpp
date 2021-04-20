@@ -30,7 +30,6 @@ bool isAsterisksOnly(const char* str, byte maxLen)
 //called upon POST settings form submit
 void handleSettingsSet(AsyncWebServerRequest *request, byte subPage)
 {
-
   //0: menu 1: wifi 2: leds 3: ui 4: sync 5: time 6: sec 7: DMX
   if (subPage <1 || subPage >7) return;
 

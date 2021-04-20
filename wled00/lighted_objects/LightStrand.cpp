@@ -38,40 +38,6 @@ std::list<const char*> LightStrand::getSupportedEffects() const
 
 /*
 ** ============================================================================
-** Run the currently selected effect
-** ============================================================================
-*/
-bool LightStrand::runEffect(uint32_t delta)
-{
-    for (int address = mStartingAddress; address < mStartingAddress + mNumberOfLEDs; ++address)
-    {
-        if (!mPoweredOn)
-        {
-            setPixelColor(address, 0x00000000);
-        }
-        else if (address % 4 == 0)
-        {
-            setPixelColor(address, 0x00FF0000); // RED
-        }
-        else if (address % 4 == 1)
-        {
-            setPixelColor(address, 0x0003D000); // GREEN
-        }
-        else if (address % 4 == 2)
-        {
-            setPixelColor(address, 0x000200FF); // BLUE
-        }
-        else
-        {
-            setPixelColor(address, 0x00FF0085); // PURPLE
-        }
-    }
-
-    return true;
-}
-
-/*
-** ============================================================================
 ** Populate the given currentState JSON object with the current state of this 
 ** lighted object.  This provides the current state to the web
 ** ============================================================================
@@ -90,4 +56,34 @@ void LightStrand::serializeSepecializedData(JsonObject& currentState) const
 void LightStrand::onParametersUpdated()
 {
     mNumberOfLEDs = mNumericValues[STRAND_LENGTH_KEY];
+}
+
+/*
+** ============================================================================
+** Run the currently selected effect
+** ============================================================================
+*/
+bool LightStrand::runSpecializedEffect()
+{
+    for (int address = mStartingAddress; address < mStartingAddress + mNumberOfLEDs; ++address)
+    {
+        if (address % 4 == 0)
+        {
+            setPixelColor(address, 0x00FF0000); // RED
+        }
+        else if (address % 4 == 1)
+        {
+            setPixelColor(address, 0x0003D000); // GREEN
+        }
+        else if (address % 4 == 2)
+        {
+            setPixelColor(address, 0x000200FF); // BLUE
+        }
+        else
+        {
+            setPixelColor(address, 0x00FF0085); // PURPLE
+        }
+    }
+
+    return true;
 }

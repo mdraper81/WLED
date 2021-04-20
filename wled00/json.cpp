@@ -16,7 +16,8 @@ bool deserializeState(JsonObject root)
   bool stateResponse = root[F("v")] | false;
   
   bri = root["bri"] | bri;
-  
+  lightDisplay.setBrightness(bri);
+
   bool on = root["on"] | (bri > 0);
   if (!on != !bri) toggleOnOff();
 
@@ -108,26 +109,10 @@ bool deserializeState(JsonObject root)
       String userInputValues = objectAction["userInputs"];
       lightDisplay.updateObject(objectIndex, userInputValues.c_str());
     }
-    else if (actionType.compareTo("set_brightness_percentage") == 0)
-    {
-      int objectIndex = objectAction[F("object_index")] | -1;
-      int newBrightnessPercentage = objectAction[F("new_brightness_percentage")] | -1;
-
-      ILightedObject* lightedObject = lightDisplay.getLightedObject(objectIndex);
-      if (lightedObject)
-      {
-          lightedObject->setBrightnessPercentage(newBrightnessPercentage);
-      }
-    }
     else if (actionType.compareTo("toggle_power") == 0)
     {
       int objectIndex = objectAction[F("object_index")] | -1;
-
-      ILightedObject* lightedObject = lightDisplay.getLightedObject(objectIndex);
-      if (lightedObject)
-      {
-          lightedObject->togglePower();
-      }
+      lightDisplay.togglePower(objectIndex);
     }
   }
 
@@ -165,11 +150,10 @@ bool deserializeState(JsonObject root)
 
 void serializeState(JsonObject root, bool forPreset, bool includeBri, bool segmentBounds)
 { 
-  Serial.printf("MDR DEBUG: serializeState called\n");
   if (includeBri) 
   {
     root["on"] = (bri > 0);
-    root["bri"] = briLast;
+    root["bri"] = lightDisplay.getBrightness();
     root[F("transition")] = transitionDelay/100; //in 100ms
   }
 

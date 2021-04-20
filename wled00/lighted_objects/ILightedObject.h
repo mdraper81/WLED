@@ -19,12 +19,6 @@
 class ILightedObject
 {
     public:
-        /// Accessor and Modifier for the Brightness Percentage.  This is a value from [0, 100]
-        /// that is applied as a percentage of the light display brightness.  This allows individual
-        /// lighted objects to be set to be brighter or dimmer than other objects.
-        virtual int8_t getBrightnessPercentage() const = 0;
-        virtual void setBrightnessPercentage(int8_t newPercentage) = 0;
-        
         /// Returns the name of this object type
         virtual std::string getObjectType() const = 0;
 

@@ -24,15 +24,15 @@ class Present : public BaseLightedObject
         /// of object
         virtual std::list<const char*> getSupportedEffects() const;
 
-        /// This is called to run another 'frame' of the current effect
-        virtual bool runEffect(uint32_t delta);
-
     // BaseLightedObject overrides
     protected:
         virtual void deserializeSpecializedData(const JsonObject& stateObject) {}
         virtual void serializeSepecializedData(JsonObject& currentState) const {}
         virtual void onParametersUpdated() {}
-        
+
+        // Handles the specialized effect logic for presents
+        virtual bool runSpecializedEffect();
+
     private:
         static std::initializer_list<const char*> SUPPORTED_EFFECTS;
 };

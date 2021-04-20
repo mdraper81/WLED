@@ -40,18 +40,11 @@ std::list<const char*> Present::getSupportedEffects() const
 ** Run the currently selected effect
 ** ============================================================================
 */
-bool Present::runEffect(uint32_t delta)
+bool Present::runSpecializedEffect()
 {
     for (int address = mStartingAddress; address < mStartingAddress + mNumberOfLEDs; ++address)
     {
-        if (mPoweredOn)
-        {
-            setPixelColor(address, 0x00FF0000);
-        }
-        else
-        {
-            setPixelColor(address, 0x00000000);
-        }
+        setPixelColor(address, 0x00FF0000);
     }
 
     return true;

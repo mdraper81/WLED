@@ -33,13 +33,12 @@ class LightDisplay
         void createLightedObject(std::string objectType);
 
         const LightedObjectList getLightedObjects() const { return mLightedObjects; }
-        //void deserializeAndApplyStateFromJson(JsonObject newState);
-        //void serializeCurrentStateToJson(JsonObject &currentState) const;
 
         void clearAllObjects();
         void deleteObject(int objectIndex);
         void moveObjectDown(int originalIndex);
         void moveObjectUp(int originalIndex);
+        void togglePower(int objectIndex);
         void updateObject(int objectIndex, const char* userInputValues);
 
         ILightedObject* getLightedObject(int objectIndex);
@@ -164,7 +163,6 @@ class LightDisplay
         LightedObjectList   mLightedObjects;
 
         static const char* LIGHT_DISPLAY_ROOT_ELEMENT;
-        static const char* MAX_PIXELS_ELEMENT;
         static const char* CURRENT_BRIGHTNESS_ELEMENT;
         static const char* SUPPORTS_WHITE_ELEMENT;
         static const char* REVERSE_MODE_ELEMENT;

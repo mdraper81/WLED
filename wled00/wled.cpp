@@ -320,7 +320,6 @@ void WLED::beginStrip()
   }
 
   lightDisplay.init(useRGBW, ledCount);
-  lightDisplay.setBrightness(50);
 
 #if defined(BTNPIN) && BTNPIN > -1
   pinManager.allocatePin(BTNPIN, false);
@@ -328,9 +327,17 @@ void WLED::beginStrip()
 #endif
 
   if (bootPreset > 0) applyPreset(bootPreset);
-  if (turnOnAtBoot) {
-    if (briS > 0) bri = briS;
-    else if (bri == 0) bri = 128;
+  if (turnOnAtBoot)
+  {
+    unsigned int initialBrightness = lightDisplay.getBrightness();
+    if (initialBrightness > 0)
+    {
+      bri = initialBrightness;
+    }
+    else if (initialBrightness == 0) 
+    {
+      bri = briS;
+    }
   } else {
     briLast = briS; bri = 0;
   }

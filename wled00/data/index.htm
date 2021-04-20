@@ -1966,44 +1966,26 @@ function addTitleElement(lightedObjectIndex, elementIndex, elementDefinition, nu
 {
 	var upArrowVisibility = (lightedObjectIndex == 0) ? "hidden" : "visible";
 	var downArrowVisibility = (lightedObjectIndex == numLightedObjects - 1) ? "hidden" : "visible";
-	var sliderBarBackground = getSliderBarBackground(elementDefinition.brightnessPercentage);
 
 	var content = `<table class="lighted_object_table">`;
 	content += `  <colgroup>`;
 	content += `    <col span="1" style="width: 10%;">`;
-	content += `    <col span="1" style="width: 80%;">`;
+	content += `    <col span="1" style="width: 10%;">`;
+	content += `    <col span="1" style="width: 60%;">`;
+	content += `    <col span="1" style="width: 10%;">`;
 	content += `    <col span="1" style="width: 10%;">`;
 	content += `  </colgroup>`;
 	content += `  <tbody>`;
 	content += `    <tr>`;
-	content += `      <td><div style="visibility: ${upArrowVisibility};"><i class="icons btn-icon" onclick="moveObjectUp(${lightedObjectIndex})">&#x21e7;</i></div></td>`;
-	content += `      <td><div class="lighted_object_title_text">${elementDefinition.value}</div></td>`;
-	content += `      <td><div style="visibility: ${downArrowVisibility};"><i class="icons btn-icon" onclick="moveObjectDown(${lightedObjectIndex})">&#x21e9;</i></div></td>`;
-	content += `    </tr>`;
-	content += `    <tr>`;
 	content += `      <td><div><i class="icons e-icon pwr ${elementDefinition.poweredOn ? "act" : ""}" onclick="toggleObjectPower(${lightedObjectIndex})">&#xe08f;</i></div></td>`;
-	content += `      <td colspan="2">`;
-	content += `        <div class="variable_width_slider_wrapper">`;
-	content += `          <input id="sliderBri_${lightedObjectIndex}" type="range" class="variable_width_range_style" max="100" min="0"  value="${elementDefinition.brightnessPercentage}" oninput="updateTrail(this)" onchange="setObjectBrightnessPercentage(${lightedObjectIndex})" >`;
-	content += `          <div class="sliderdisplay" style="background: ${sliderBarBackground}"></div>`
-	content += `        </div>`;
-	content += `      </td>`;
+	content += `      <td></td>`;
+	content += `      <td><div class="lighted_object_title_text">${elementDefinition.value}</div></td>`;
+	content += `      <td><div style="visibility: ${upArrowVisibility};"><i class="icons btn-icon" onclick="moveObjectUp(${lightedObjectIndex})">&#x21e7;</i></div></td>`;
+	content += `      <td><div style="visibility: ${downArrowVisibility};"><i class="icons btn-icon" onclick="moveObjectDown(${lightedObjectIndex})">&#x21e9;</i></div></td>`;
 	content += `    </tr>`;
 	content += `  </tbody>`;
 	content += `</table>`;
 	return content;
-}
-
-function setObjectBrightnessPercentage(lightedObjectIndex)
-{
-	var brightnessSlider = d.getElementById(`sliderBri_${lightedObjectIndex}`);
-	if (!brightnessSlider)
-	{
-		return;
-	}
-	var newBrightnessPct = parseInt(brightnessSlider.value);
-	var obj = {"object_action": {"action": "set_brightness_percentage", "object_index": lightedObjectIndex, "new_brightness_percentage": newBrightnessPct}};
-	requestJson(obj);
 }
 
 function toggleObjectPower(lightedObjectIndex)

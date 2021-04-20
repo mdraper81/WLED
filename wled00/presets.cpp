@@ -36,10 +36,6 @@ bool applyPreset(byte index)
 
 void savePreset(byte index, bool persist, const char* pname, JsonObject saveobj)
 {
-  Serial.printf("MDR DEBUG: Calling savePreset with index %d persist %d name %s and JSON: \n", index, persist, pname != nullptr ? pname : "<nullptr>");
-  serializeJsonPretty(saveobj, Serial);
-  Serial.printf("-----\n");
-
   if (index == 0 || index > 250) return;
   bool docAlloc = (fileDoc != nullptr);
   JsonObject sObj = saveobj;
@@ -61,7 +57,6 @@ void savePreset(byte index, bool persist, const char* pname, JsonObject saveobj)
 
     if (!sObj["o"]) {
       DEBUGFS_PRINTLN(F("Save current state"));
-      Serial.printf("MDR DEBUG: Getting into here as expected\n");
       serializeState(sObj, true, sObj["ib"], sObj["sb"]);
       currentPreset = index;
     }
@@ -70,10 +65,6 @@ void savePreset(byte index, bool persist, const char* pname, JsonObject saveobj)
     sObj.remove("sb");
     sObj.remove(F("error"));
     sObj.remove(F("time"));
-
-    Serial.printf("MDR DEBUG: printing sObj\n");
-    serializeJsonPretty(sObj, Serial);
-    Serial.printf("-----\n");
 
     writeObjectToFileUsingId("/presets.json", index, fileDoc);
   }

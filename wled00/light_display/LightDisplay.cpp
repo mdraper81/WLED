@@ -32,7 +32,6 @@ const byte LightDisplay::sGammaTable[] = {
 
 const char* LightDisplay::SAVE_FILE_NAME = "/lightDisplay.json";
 const char* LightDisplay::LIGHT_DISPLAY_ROOT_ELEMENT = "lightDisplay";
-const char* LightDisplay::MAX_PIXELS_ELEMENT = "maxPixels";
 const char* LightDisplay::CURRENT_BRIGHTNESS_ELEMENT = "currentBrightness";
 const char* LightDisplay::SUPPORTS_WHITE_ELEMENT = "supportsWhite";
 const char* LightDisplay::REVERSE_MODE_ELEMENT = "reverseModeEnabled";
@@ -226,6 +225,26 @@ void LightDisplay::moveObjectUp(int originalIndex)
 
 /*
 ** ============================================================================
+** Toggles the power on/off for the object with the given index
+**
+**  param   objectIndex - index of the object to toggle power for
+** ============================================================================
+*/
+void LightDisplay::togglePower(int objectIndex)
+{
+    if (objectIndex >= 0 && objectIndex < mLightedObjects.size())
+    {
+        ILightedObject* objectToToggle = mLightedObjects[objectIndex];
+        if (nullptr != objectToToggle)
+        {
+            objectToToggle->togglePower();
+        }
+        saveToFile();
+    }
+}
+
+/*
+** ============================================================================
 ** Updates the lighted object at the given index to set its parameters to the
 ** values given in userInputValues
 **
@@ -373,6 +392,8 @@ void LightDisplay::setBrightness(uint8_t newBrightness)
     {
         setBrightnessAndShow();
     }
+
+    saveToFile();
 }
 
 /*
@@ -728,7 +749,6 @@ void LightDisplay::saveToFile() const
 
         // Save info specific to the Light Display itself
         JsonObject rootObject = doc.createNestedObject(LIGHT_DISPLAY_ROOT_ELEMENT);
-        rootObject[MAX_PIXELS_ELEMENT] = mMaxPixelsInDisplay;
         rootObject[CURRENT_BRIGHTNESS_ELEMENT] = mCurrentBrightness;
         rootObject[SUPPORTS_WHITE_ELEMENT] = mSupportsWhiteChannel;
         rootObject[REVERSE_MODE_ELEMENT] = mReverseModeEnabled;
@@ -773,7 +793,6 @@ void LightDisplay::loadFromFile()
 
             // Use the JSON document to reconstruct our light display
             JsonObject rootObject = doc[LIGHT_DISPLAY_ROOT_ELEMENT];
-            POPULATE_FROM_JSON(mMaxPixelsInDisplay, rootObject[MAX_PIXELS_ELEMENT]);
             POPULATE_FROM_JSON(mCurrentBrightness, rootObject[CURRENT_BRIGHTNESS_ELEMENT]);
             POPULATE_FROM_JSON(mSupportsWhiteChannel, rootObject[SUPPORTS_WHITE_ELEMENT]);
             POPULATE_FROM_JSON(mReverseModeEnabled, rootObject[REVERSE_MODE_ELEMENT]);

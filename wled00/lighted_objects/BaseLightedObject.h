@@ -21,12 +21,6 @@ class BaseLightedObject : public ILightedObject
 
     // ILightedObject Interface
     public:
-        /// Accessor and Modifier for the Brightness Percentage.  This is a value from [0, 100]
-        /// that is applied as a percentage of the light display brightness.  This allows individual
-        /// lighted objects to be set to be brighter or dimmer than other objects.
-        virtual int8_t getBrightnessPercentage() const { return mBrightnessPercentage; }
-        virtual void setBrightnessPercentage(int8_t newPercentage);
-
         /// Returns the name of this object type
         virtual std::string getObjectType() const { return "BaseLightedObject"; }
         
@@ -44,7 +38,7 @@ class BaseLightedObject : public ILightedObject
 
         /// This is called to run another 'frame' of the current effect.  Returns true if any pixels in this
         /// object have changed.
-        virtual bool runEffect(uint32_t delta) { return false; }
+        virtual bool runEffect(uint32_t delta) final;
 
         // This will pass in the pointer to the Neo Pixel wrapper for the lighted object to interact with
         virtual void setNeoPixelWrapper(NeoPixelWrapper* neoPixelWrapper) { mPixelWrapper = neoPixelWrapper; }    
@@ -84,6 +78,8 @@ class BaseLightedObject : public ILightedObject
 
     protected:
         void setPixelColor(uint16_t address, uint32_t color);
+        void setPixelColorForRange(uint16_t startingAddress, uint16_t numPixels, uint32_t color);
+        void turnOffPixelsInRange(uint16_t startingAddress, uint16_t numPixels);
 
         void appendCommonUiElements(JsonArray& uiElementsArray) const;
         void appendDropDownElement(JsonArray& uiElementsArray, std::list<const char*> optionsList, int selectedIndex, const char* label, const char* inputKey) const;
@@ -96,6 +92,8 @@ class BaseLightedObject : public ILightedObject
         virtual void serializeSepecializedData(JsonObject& currentState) const = 0;
         virtual void onParametersUpdated() = 0;
 
+        virtual bool runSpecializedEffect() { return false; }
+
     private:
         void deserializeUiElements(const JsonArray& uiElementsArray);
 
@@ -106,9 +104,9 @@ class BaseLightedObject : public ILightedObject
     protected:
         NeoPixelWrapper *mPixelWrapper;
 
+        uint64_t mTotalTimeRunning;
         uint16_t mStartingAddress;
         uint16_t mNumberOfLEDs;
-        uint8_t  mBrightnessPercentage;
         bool     mPoweredOn;
 
         // Parameter storage that can be used by derived classes, these store
